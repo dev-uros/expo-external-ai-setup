@@ -1,0 +1,137 @@
+# The admin's whole path through one account, as on the web: create it (the backend emails the
+# invite), resend the invite, edit it, make it an admin, switch it off and on again, and read
+# what was done in its audit trail. Every account gets a fresh email; the script afterwards
+# switches all of them off — there is no delete endpoint.
+appId: com.example.backoffice
+tags: [users]
+onFlowComplete:
+  - runScript: ../scripts/deactivate-maestro-users.js
+---
+- evalScript: ${output.stamp = String(Date.now()).slice(-7)}
+- evalScript: ${output.surname = 'Test' + output.stamp}
+- evalScript: ${output.email = 'maestro.' + output.stamp + '@fifthguild.com'}
+
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: uros.minic@fifthguild.com
+      PASSWORD: password
+- extendedWaitUntil:
+    visible: 'Dobro došli, Uroš.'
+    timeout: 15000
+
+# Create.
+- tapOn: 'Korisnici'
+- extendedWaitUntil:
+    visible: 'Milica Jovanović, .*'
+    timeout: 15000
+- tapOn: 'Novi korisnik'
+- tapOn:
+    id: 'user-name'
+- inputText: 'Maestro'
+- tapOn:
+    id: 'user-surname'
+- inputText: ${output.surname}
+- tapOn:
+    id: 'user-email'
+- inputText: ${output.email}
+- hideKeyboard
+- tapOn:
+    id: 'user-save'
+- extendedWaitUntil:
+    visible: 'Korisnik uspešno kreiran.*'
+    timeout: 15000
+
+# Find it and open it: never activated yet.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Pretraži po imenu ili emailu'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: 'Search'
+- inputText: ${output.surname}
+- tapOn: 'Maestro ${output.surname}, .*'
+- extendedWaitUntil:
+    visible: 'Nije aktiviran'
+    timeout: 15000
+
+# Resend the invite.
+- tapOn: 'Radnje'
+- tapOn: 'Pošalji aktivacioni link'
+- assertVisible: 'Aktivacioni link'
+- tapOn:
+    text: 'Pošalji'
+    below: 'Novi link za aktivaciju.*'
+- extendedWaitUntil:
+    visible: 'Aktivacioni email je ponovo poslat.'
+    timeout: 15000
+# The toast sits over the header; dismissed like a user would, so the menu can be reached.
+- tapOn: 'Aktivacioni email je ponovo poslat.'
+
+# Edit.
+- tapOn: 'Radnje'
+- tapOn: 'Izmeni podatke'
+- assertVisible: 'Izmena korisnika'
+- tapOn:
+    id: 'user-surname'
+    point: '95%,50%'
+- inputText: 'X'
+- hideKeyboard
+- tapOn:
+    id: 'user-save'
+- extendedWaitUntil:
+    visible: 'Korisnik uspešno ažuriran.'
+    timeout: 15000
+- tapOn: 'Korisnik uspešno ažuriran.'
+- assertVisible: 'Maestro ${output.surname}X'
+
+# Make it an admin.
+- tapOn: 'Radnje'
+- tapOn: 'Promeni ulogu'
+- assertVisible: 'Promena uloge'
+- tapOn:
+    text: 'Promeni ulogu'
+    below: '.*dobija ulogu.*'
+- extendedWaitUntil:
+    visible: 'Uloga korisnika je uspešno promenjena.'
+    timeout: 15000
+- tapOn: 'Uloga korisnika je uspešno promenjena.'
+- assertVisible: 'Uloga: Administrator'
+
+# Switch it off, and on again.
+- tapOn: 'Radnje'
+- tapOn: 'Isključi nalog'
+- assertVisible: 'Isključivanje naloga'
+- tapOn:
+    text: 'Isključi nalog'
+    below: 'Nalog ostaje u listi.*'
+- extendedWaitUntil:
+    visible: 'Nalog je isključen.'
+    timeout: 15000
+- tapOn: 'Nalog je isključen.'
+- tapOn: 'Radnje'
+- tapOn: 'Uključi nalog'
+- tapOn:
+    text: 'Uključi nalog'
+    below: '.*ponovo može da se prijavi.'
+- extendedWaitUntil:
+    visible: 'Nalog je ponovo uključen.'
+    timeout: 15000
+- tapOn: 'Nalog je ponovo uključen.'
+
+# Everything above is in its audit trail, newest first.
+- tapOn: 'Istorija izmena'
+- extendedWaitUntil:
+    visible: 'Nalog uključen'
+    timeout: 15000
+- assertVisible: 'Nalog isključen'
+- assertVisible: 'Uloga promenjena'
+- assertVisible: 'Podaci izmenjeni'
+- scrollUntilVisible:
+    element: 'Nalog kreiran'
+    direction: DOWN

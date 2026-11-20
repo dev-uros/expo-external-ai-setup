@@ -45,3 +45,7 @@ yarn-error.*
 
 # IDE
 .idea/
+
+# local native module build output
+modules/*/android/build/
+modules/*/android/.cxx/

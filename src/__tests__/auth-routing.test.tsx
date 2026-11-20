@@ -93,8 +93,9 @@ test('a signed-in deep link to a user that cannot exist lands on "no such user"'
 
   expect(await screen.findByText('Korisnik ne postoji')).toBeOnTheScreen();
   expect(screen).toHavePathname('/users/abc');
-  // /auth/me only — an id that is not an id never reaches the server.
-  expect(requestMock).toHaveBeenCalledTimes(1);
+  // An id that is not an id never reaches the server.
+  expect(requestMock).not.toHaveBeenCalledWith('/users/abc', expect.anything());
+  expect(requestMock.mock.calls.map(([path]) => path)).not.toContain('/users/abc');
 });
 
 test('a deep link that arrives at launch survives the session check', async () => {

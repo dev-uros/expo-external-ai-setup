@@ -14,3 +14,21 @@ jest.mock('react-native-keyboard-controller', () =>
 jest.mock('@react-native-community/netinfo', () =>
   require('@react-native-community/netinfo/jest/netinfo-mock.js')
 );
+
+// expo-sqlite's key-value store, in memory: each test file starts with an empty device.
+jest.mock('expo-sqlite/kv-store', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItemSync: (key: string) => values.get(key) ?? null,
+    setItemSync: (key: string, value: string) => void values.set(key, value),
+    removeItemSync: (key: string) => values.delete(key),
+    clear: () => values.clear(),
+  };
+  return { __esModule: true, default: storage, Storage: storage };
+});
+
+// Our theme-transition native module does not exist under Jest: the change runs, without a fade.
+jest.mock('@/lib/theme-transition', () => ({
+  applyColorScheme: jest.fn(),
+  crossFade: jest.fn(async (change: () => void) => change()),
+}));

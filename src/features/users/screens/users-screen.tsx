@@ -1,4 +1,6 @@
+import AddIcon from '@expo/material-symbols/person_add.xml';
 import { FlashList } from '@shopify/flash-list';
+import { router } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,6 +10,7 @@ import { usePalette } from '@/features/shared/hooks/use-palette';
 import { toDisplayMessage } from '@/features/shared/utils/api-errors';
 import { font } from '@/features/shared/utils/typography';
 import { UserRow } from '@/features/users/components/user-row';
+import { useViewer } from '@/features/users/hooks/use-user-actions';
 import { useUsersQuery } from '@/features/users/query/use-users-query';
 import { filterUsers } from '@/features/users/utils/filter-users';
 
@@ -23,6 +26,7 @@ export function UsersScreen() {
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const { data: users, error, refetch } = useUsersQuery();
+  const { isAdmin } = useViewer();
 
   // Pull to refresh shows its own spinner only for the refresh the user asked for; background
   // refetches (app back in the foreground, network back) stay silent.
@@ -37,6 +41,15 @@ export function UsersScreen() {
       <Stack.Title large style={font('semibold')} largeStyle={font('bold')}>
         Korisnici
       </Stack.Title>
+      {/* Creating accounts is the admin's; a plain user does not see the button at all. */}
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          hidden={!isAdmin}
+          icon={process.env.EXPO_OS === 'ios' ? 'plus' : AddIcon}
+          accessibilityLabel="Novi korisnik"
+          onPress={() => router.push('/user-form/new')}
+        />
+      </Stack.Toolbar>
       <Stack.SearchBar
         placeholder="Pretraži po imenu ili emailu"
         autoCapitalize="none"

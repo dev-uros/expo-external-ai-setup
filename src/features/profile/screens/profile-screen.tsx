@@ -4,12 +4,11 @@ import { Stack } from 'expo-router/stack';
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { AvatarEditor } from '@/features/profile/components/avatar-editor';
-import { useAvatarEditor } from '@/features/profile/hooks/use-avatar-editor';
+import { AvatarEditor } from '@/features/shared/components/avatar-editor';
+import { useAvatarEditor } from '@/features/shared/hooks/use-avatar-editor';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import type { User } from '@/features/shared/schemas/user';
 import { useSessionStore } from '@/features/shared/stores/session';
-import { labelColor, secondaryLabelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 import { ROLE_LABELS } from '@/features/shared/utils/user';
 
@@ -39,7 +38,9 @@ export function ProfileScreen({ footer }: { footer?: ReactNode }) {
           hidden={user?.role !== 'admin'}
           icon={process.env.EXPO_OS === 'ios' ? 'pencil' : EditIcon}
           accessibilityLabel="Izmeni profil"
-          onPress={() => router.push('/edit-profile')}
+          onPress={() =>
+            user && router.push({ pathname: '/user-form/[id]', params: { id: String(user.id) } })
+          }
         />
       </Stack.Toolbar>
     </>
@@ -58,13 +59,13 @@ function AccountCard({ user }: { user: User }) {
           <Text
             accessibilityRole="header"
             numberOfLines={2}
-            style={[styles.name, { color: labelColor }]}>
+            style={[styles.name, { color: palette.label }]}>
             {`${user.name} ${user.surname}`}
           </Text>
-          <Text style={[styles.secondary, { color: secondaryLabelColor }]}>
+          <Text style={[styles.secondary, { color: palette.secondaryLabel }]}>
             {ROLE_LABELS[user.role]}
           </Text>
-          <Text numberOfLines={1} style={[styles.secondary, { color: secondaryLabelColor }]}>
+          <Text numberOfLines={1} style={[styles.secondary, { color: palette.secondaryLabel }]}>
             {user.email}
           </Text>
         </View>

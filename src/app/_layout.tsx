@@ -8,6 +8,7 @@ import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { queryClient } from '@/lib/query-client';
+import { applySavedTheme } from '@/features/appearance/stores/appearance';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
 import { ToastHost } from '@/features/shared/components/toast-host';
 import { installUnauthorizedHandler, restoreSession } from '@/features/auth/session';
@@ -17,6 +18,8 @@ import { useSessionStore } from '@/features/shared/stores/session';
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 300, fade: true });
 installUnauthorizedHandler();
+// Synchronous read, so the chosen theme is in place before the first frame.
+applySavedTheme();
 
 /**
  * The last line of defence: an error that escapes every screen boundary — in a layout or a

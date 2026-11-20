@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { useToastStore, type Toast } from '@/features/shared/stores/toast';
-import { labelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 
 /** Long enough to read one sentence. */
@@ -60,7 +59,10 @@ function ToastView({ toast }: { toast: Toast }) {
         },
       ]}>
       <Text
-        style={[styles.text, { color: toast.tone === 'success' ? palette.success : labelColor }]}>
+        style={[
+          styles.text,
+          { color: toast.tone === 'success' ? palette.success : palette.label },
+        ]}>
         {toast.message}
       </Text>
     </Animated.View>

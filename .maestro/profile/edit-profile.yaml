@@ -23,7 +23,7 @@ onFlowComplete:
 - assertVisible: 'Izmena profila'
 # Tap the right-hand end so the cursor sits after the text, then clear all of it.
 - tapOn:
-    id: 'profile-name'
+    id: 'user-name'
     point: '95%,50%'
 - eraseText: 100
 - tapOn: 'Sačuvaj'
@@ -54,7 +54,7 @@ onFlowComplete:
 - tapOn: 'Izmeni profil'
 # Tap the right-hand end so the cursor sits after the text, then clear all of it.
 - tapOn:
-    id: 'profile-email'
+    id: 'user-email'
     point: '95%,50%'
 - eraseText: 100
 - inputText: 'uros.minic@fifthguild.com'
@@ -70,7 +70,7 @@ onFlowComplete:
 - tapOn: 'Izmeni profil'
 # Tap the right-hand end so the cursor sits after the text, then clear all of it.
 - tapOn:
-    id: 'profile-surname'
+    id: 'user-surname'
     point: '95%,50%'
 - eraseText: 100
 - inputText: 'Jovanović Test'

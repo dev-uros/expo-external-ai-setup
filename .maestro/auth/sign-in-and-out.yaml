@@ -56,13 +56,23 @@ tags: [auth]
 - assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
 - assertVisible: 'Uroš Minić'
 
-# Confirming signs out. The screen's own button stays in the iOS hierarchy behind the alert, so
-# the alert's button is picked by its position below the question.
+# Confirming signs out. On iOS the screen's own "Odjavi se" stays in the hierarchy behind the
+# alert, and where it sits depends on the screen's layout; the alert is drawn last, so its button
+# is the last match. Android's dialog leaves only one.
 - tapOn: 'Odjavi se'
 - assertVisible: 'Da li ste sigurni da želite da se odjavite?'
-- tapOn:
-    text: 'Odjavi se'
-    below: 'Da li ste sigurni da želite da se odjavite\?'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          text: 'Odjavi se'
+          index: 1
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: 'Odjavi se'
 - extendedWaitUntil:
     visible: 'Prijavite se svojim poslovnim nalogom.'
     timeout: 15000

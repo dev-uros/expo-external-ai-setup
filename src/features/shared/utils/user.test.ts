@@ -1,4 +1,4 @@
-import { formatDate, fullName, userStatus } from '@/features/shared/utils/user';
+import { fullName, userStatus } from '@/features/shared/utils/user';
 
 const activated = '2026-01-01T10:00:00+00:00';
 
@@ -19,8 +19,4 @@ test('deactivation wins, activated or not', () => {
 
 test('the full name is name and surname', () => {
   expect(fullName({ name: 'Ana', surname: 'Nikolić' })).toBe('Ana Nikolić');
-});
-
-test('dates are written in Serbian', () => {
-  expect(formatDate('2026-11-20T12:00:00+00:00')).toMatch(/20\. novembar 2026/);
 });

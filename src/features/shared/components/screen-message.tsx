@@ -1,8 +1,8 @@
 import { Button, Host, Text as UIText } from '@expo/ui';
+import { usePalette } from '@/features/shared/hooks/use-palette';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { labelColor, secondaryLabelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 
 interface ScreenMessageProps {
@@ -22,14 +22,15 @@ interface ScreenMessageProps {
  * action — a blank list or a bare error code is never the answer.
  */
 export function ScreenMessage({ icon, title, message, action, testID }: ScreenMessageProps) {
+  const palette = usePalette();
   return (
     <View testID={testID} style={styles.container}>
-      <SymbolView name={icon} size={44} tintColor={secondaryLabelColor} />
-      <Text accessibilityRole="header" style={[styles.title, { color: labelColor }]}>
+      <SymbolView name={icon} size={44} tintColor={palette.secondaryLabel} />
+      <Text accessibilityRole="header" style={[styles.title, { color: palette.label }]}>
         {title}
       </Text>
       {message ? (
-        <Text style={[styles.message, { color: secondaryLabelColor }]}>{message}</Text>
+        <Text style={[styles.message, { color: palette.secondaryLabel }]}>{message}</Text>
       ) : null}
       {action ? (
         <Host matchContents style={styles.action}>

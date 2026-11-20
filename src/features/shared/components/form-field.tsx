@@ -4,7 +4,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { fieldAppearance } from '@/features/shared/components/form-field-appearance';
 import { usePalette } from '@/features/shared/hooks/use-palette';
-import { labelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 
 interface FormFieldProps extends Omit<TextInputProps, 'style' | 'accessibilityLabel'> {
@@ -23,7 +22,7 @@ export function FormField({ label, error, ref, ...input }: FormFieldProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: palette.label }]}>{label}</Text>
       <Host matchContents={{ vertical: true }} style={styles.host}>
         <TextInput
           ref={ref}

@@ -1,8 +1,8 @@
 import type { ErrorBoundaryProps } from 'expo-router';
+import { usePalette } from '@/features/shared/hooks/use-palette';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ScreenMessage } from '@/features/shared/components/screen-message';
-import { backgroundColor } from '@/features/shared/utils/colors';
 
 /**
  * What the user sees instead of a blank screen when a screen crashes while rendering. The words
@@ -12,10 +12,11 @@ import { backgroundColor } from '@/features/shared/utils/colors';
  * renders it outside every provider.
  */
 export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
+  const palette = usePalette();
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor }}
+      style={{ backgroundColor: palette.background }}
       contentContainerStyle={styles.fill}>
       <ScreenMessage
         icon={{ ios: 'exclamationmark.triangle', android: 'error', web: 'error' }}

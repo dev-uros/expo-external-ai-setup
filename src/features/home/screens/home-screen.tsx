@@ -1,12 +1,17 @@
 import { Stack } from 'expo-router/stack';
+import { usePalette } from '@/features/shared/hooks/use-palette';
+import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
 
 import { useSessionStore } from '@/features/shared/stores/session';
-import { labelColor, secondaryLabelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 
-/** Where a signed-in user lands. A placeholder until the first real feature arrives. */
-export function HomeScreen() {
+/**
+ * Where a signed-in user lands: a greeting, and whatever the route places under it — the
+ * shortcuts, which belong to their own feature.
+ */
+export function HomeScreen({ children }: { children?: ReactNode }) {
+  const palette = usePalette();
   const name = useSessionStore((state) => state.user?.name);
 
   return (
@@ -15,12 +20,10 @@ export function HomeScreen() {
         Početna
       </Stack.Title>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-        <Text style={[styles.greeting, { color: labelColor }]}>
+        <Text style={[styles.greeting, { color: palette.label }]}>
           {name ? `Dobro došli, ${name}.` : 'Dobro došli.'}
         </Text>
-        <Text style={[styles.body, { color: secondaryLabelColor }]}>
-          Ovde će se pojaviti prve funkcionalnosti aplikacije.
-        </Text>
+        {children}
       </ScrollView>
     </>
   );
@@ -29,14 +32,10 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   content: {
     padding: 16,
-    gap: 8,
+    gap: 24,
   },
   greeting: {
     ...font('semibold'),
     fontSize: 22,
-  },
-  body: {
-    ...font(),
-    fontSize: 17,
   },
 });

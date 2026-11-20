@@ -5,6 +5,7 @@ import { renderRouter, screen } from 'expo-router/testing-library';
 import { ApiError } from '@/lib/http';
 import { fetchUser } from '@/features/users/api/users';
 import { usersKeys } from '@/features/users/query/keys';
+import { useSessionStore } from '@/features/shared/stores/session';
 import { UserDetailScreen } from '@/features/users/screens/user-detail-screen';
 import { ana, nikola } from '@/features/users/testing/fixtures';
 
@@ -24,7 +25,10 @@ async function renderDetail(id: number | null, client = new QueryClient()) {
   });
 }
 
-beforeEach(() => fetchUserMock.mockReset());
+beforeEach(() => {
+  fetchUserMock.mockReset();
+  useSessionStore.setState({ status: 'signedIn', user: { ...nikola, id: 99, role: 'user' } });
+});
 
 test('shows the account: name, status, email, role and dates in Serbian', async () => {
   fetchUserMock.mockResolvedValueOnce({ message: 'OK', data: ana });
@@ -83,4 +87,41 @@ test('any other failure offers to try again', async () => {
 
   expect(await screen.findByText('Korisnik nije učitan')).toBeOnTheScreen();
   expect(screen.getByTestId('user-load-error-action')).toBeOnTheScreen();
+});
+
+describe('who is looking', () => {
+  test('an admin gets both audit trails', async () => {
+    useSessionStore.setState({ status: 'signedIn', user: { ...ana, id: 50 } });
+    fetchUserMock.mockResolvedValueOnce({ message: 'OK', data: nikola });
+
+    await renderDetail(3);
+
+    expect(await screen.findByLabelText('Istorija izmena')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Istorija prijava')).toBeOnTheScreen();
+  });
+
+  test('a plain user sees the account but not its history', async () => {
+    fetchUserMock.mockResolvedValueOnce({ message: 'OK', data: nikola });
+
+    await renderDetail(3);
+
+    expect(await screen.findByRole('header', { name: 'Nikola Ilić' })).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Istorija izmena')).not.toBeOnTheScreen();
+  });
+
+  test('one’s own account is marked as such', async () => {
+    useSessionStore.setState({ status: 'signedIn', user: ana });
+    fetchUserMock.mockResolvedValueOnce({ message: 'OK', data: ana });
+
+    await renderDetail(1);
+
+    expect(await screen.findByText('Vi')).toBeOnTheScreen();
+  });
+
+  test('the picture is editable for an admin, read-only for a plain user', async () => {
+    fetchUserMock.mockResolvedValue({ message: 'OK', data: nikola });
+    await renderDetail(3);
+    expect(await screen.findByRole('header', { name: 'Nikola Ilić' })).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Promeni profilnu sliku')).not.toBeOnTheScreen();
+  });
 });

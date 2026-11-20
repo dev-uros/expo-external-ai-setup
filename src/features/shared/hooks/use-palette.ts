@@ -1,4 +1,40 @@
-import { useColorScheme } from 'react-native';
+import { Color } from 'expo-router';
+import { Platform, useColorScheme, type ColorValue } from 'react-native';
+
+/**
+ * Text and screen colors for React Native views.
+ *
+ * iOS: the system's semantic colors (`label`, `secondaryLabel`, `systemBackground`). They are
+ * dynamic — UIKit resolves them for the current appearance at draw time — so they follow any
+ * theme change on their own.
+ *
+ * Android: fixed values per scheme, like the rest of this palette, on purpose. Material You's
+ * `Color.android.dynamic.*` is not a live color: expo-router computes it natively, at render time,
+ * from the configuration of the app's resources — which changes on another thread when the theme
+ * changes in the app. A render that runs first reads the old theme, the text keeps the old
+ * theme's color, and React Native never repaints it because the value it then gets is the same.
+ * Plain values per scheme cannot race.
+ */
+function semantic(scheme: 'light' | 'dark') {
+  if (Platform.OS === 'ios') {
+    return {
+      label: Color.ios.label as ColorValue,
+      secondaryLabel: Color.ios.secondaryLabel as ColorValue,
+      background: Color.ios.systemBackground as ColorValue,
+    };
+  }
+  return scheme === 'dark'
+    ? {
+        label: '#E4E2E6' as ColorValue,
+        secondaryLabel: '#C6C5D0' as ColorValue,
+        background: '#131316' as ColorValue,
+      }
+    : {
+        label: '#1B1B1F' as ColorValue,
+        secondaryLabel: '#46464F' as ColorValue,
+        background: '#FBF8FD' as ColorValue,
+      };
+}
 
 /**
  * Concrete colors for places that cannot take a platform color — `@expo/ui` input borders and
@@ -38,8 +74,13 @@ const dark: typeof light = {
   cardBackground: '#1C1C1E',
 };
 
-export type Palette = typeof light;
+export type Palette = typeof light & ReturnType<typeof semantic>;
+
+const palettes = {
+  light: { ...light, ...semantic('light') },
+  dark: { ...dark, ...semantic('dark') },
+};
 
 export function usePalette(): Palette {
-  return useColorScheme() === 'dark' ? dark : light;
+  return useColorScheme() === 'dark' ? palettes.dark : palettes.light;
 }

@@ -27,8 +27,3 @@ export function userStatus(user: Pick<User, 'deactivated_at' | 'email_verified_a
 export function fullName(user: Pick<User, 'name' | 'surname'>): string {
   return `${user.name} ${user.surname}`;
 }
-
-/** `20. novembar 2026.` — dates read the way they are written in Serbian. */
-export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('sr-Latn', { dateStyle: 'long' }).format(new Date(iso));
-}

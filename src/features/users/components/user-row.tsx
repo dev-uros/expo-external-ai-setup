@@ -1,10 +1,10 @@
 import { Link } from 'expo-router';
+import { usePalette } from '@/features/shared/hooks/use-palette';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { UserAvatar } from '@/features/shared/components/user-avatar';
 import type { User } from '@/features/shared/schemas/user';
-import { labelColor, secondaryLabelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 import { STATUS_LABELS, fullName, userStatus } from '@/features/shared/utils/user';
 import { UserStatusBadge } from '@/features/users/components/user-status-badge';
@@ -14,6 +14,7 @@ import { UserStatusBadge } from '@/features/users/components/user-status-badge';
  * the account — read out by screen readers as name, email and status in one go.
  */
 export function UserRow({ user }: { user: User }) {
+  const palette = usePalette();
   const name = fullName(user);
 
   return (
@@ -27,16 +28,16 @@ export function UserRow({ user }: { user: User }) {
           <View style={[styles.row, pressed && process.env.EXPO_OS === 'ios' && styles.pressed]}>
             <UserAvatar name={user.name} surname={user.surname} url={user.avatar_url} size={44} />
             <View style={styles.text}>
-              <Text numberOfLines={1} style={[styles.name, { color: labelColor }]}>
+              <Text numberOfLines={1} style={[styles.name, { color: palette.label }]}>
                 {name}
               </Text>
-              <Text numberOfLines={1} style={[styles.email, { color: secondaryLabelColor }]}>
+              <Text numberOfLines={1} style={[styles.email, { color: palette.secondaryLabel }]}>
                 {user.email}
               </Text>
               <UserStatusBadge user={user} />
             </View>
             {process.env.EXPO_OS === 'ios' ? (
-              <SymbolView name="chevron.right" size={14} tintColor={secondaryLabelColor} />
+              <SymbolView name="chevron.right" size={14} tintColor={palette.secondaryLabel} />
             ) : null}
           </View>
         )}

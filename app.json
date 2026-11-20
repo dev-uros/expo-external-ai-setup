@@ -64,7 +64,8 @@
           "photosPermission": "Backoffice pristupa izabranoj fotografiji da biste je postavili kao profilnu sliku.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "scheme": "expo-mobile-ai-setup",
     "experiments": {

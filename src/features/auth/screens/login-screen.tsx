@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FormField } from '@/features/shared/components/form-field';
 import { useLoginForm } from '@/features/auth/hooks/use-login-form';
 import { usePalette } from '@/features/shared/hooks/use-palette';
-import { backgroundColor, labelColor, secondaryLabelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
 
 /**
@@ -26,7 +25,7 @@ export function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView behavior="padding" style={styles.screen}>
         <ScrollView
           contentContainerStyle={styles.content}
@@ -40,10 +39,10 @@ export function LoginScreen() {
               contentFit="cover"
               accessibilityLabel="Logo"
             />
-            <Text accessibilityRole="header" style={[styles.title, { color: labelColor }]}>
+            <Text accessibilityRole="header" style={[styles.title, { color: palette.label }]}>
               Prijava
             </Text>
-            <Text style={[styles.subtitle, { color: secondaryLabelColor }]}>
+            <Text style={[styles.subtitle, { color: palette.secondaryLabel }]}>
               Prijavite se svojim poslovnim nalogom.
             </Text>
           </View>

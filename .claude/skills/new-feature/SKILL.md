@@ -59,8 +59,8 @@ src/features/<feature>/
 - Lists: `FlashList` with `contentInsetAdjustmentBehavior="automatic"`, pull to refresh, rows that
   are one accessible element with a full `accessibilityLabel`. Search: `Stack.SearchBar`.
 - Details: show the list's row at once (`placeholderData` from the list cache).
-- Titles with `Stack.Title`, fonts only through `font()`, colors through `colors.ts` /
-  `usePalette()`, both light and dark checked.
+- Titles with `Stack.Title`, fonts only through `font()`, colors only through
+  `usePalette()` in the component that draws them, both light and dark checked.
 
 ## 4. Tests — the feature is not done without them
 
