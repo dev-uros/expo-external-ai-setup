@@ -11,8 +11,7 @@ import type { User } from '@/features/shared/schemas/user';
 import { useSessionStore } from '@/features/shared/stores/session';
 import { labelColor, secondaryLabelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
-
-export const ROLE_LABELS = { admin: 'Administrator', user: 'Korisnik' } as const;
+import { ROLE_LABELS } from '@/features/shared/utils/user';
 
 /**
  * The signed-in account — picture, name, role, email.

@@ -84,3 +84,31 @@ test('signing out from inside the app lands on login', async () => {
   expect(await screen.findByText('Prijavite se svojim poslovnim nalogom.')).toBeOnTheScreen();
   expect(screen).toHavePathname('/login');
 });
+
+test('a signed-in deep link to a user that cannot exist lands on "no such user"', async () => {
+  readTokenMock.mockResolvedValueOnce('stored');
+  requestMock.mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user });
+
+  await renderRouter('./src/app', { initialUrl: '/users/abc' });
+
+  expect(await screen.findByText('Korisnik ne postoji')).toBeOnTheScreen();
+  expect(screen).toHavePathname('/users/abc');
+  // /auth/me only — an id that is not an id never reaches the server.
+  expect(requestMock).toHaveBeenCalledTimes(1);
+});
+
+test('a deep link that arrives at launch survives the session check', async () => {
+  readTokenMock.mockResolvedValueOnce('stored');
+  requestMock
+    .mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user })
+    .mockResolvedValueOnce({
+      message: 'Korisnik uspešno učitan.',
+      data: { ...user, id: 7, name: 'Marko', surname: 'Petrović', email: 'marko@firma.com' },
+    });
+
+  await renderRouter('./src/app', { initialUrl: '/users/7' });
+
+  expect(await screen.findByLabelText('Email: marko@firma.com')).toBeOnTheScreen();
+  expect(screen).toHavePathname('/users/7');
+  expect(requestMock).toHaveBeenLastCalledWith('/users/7');
+});

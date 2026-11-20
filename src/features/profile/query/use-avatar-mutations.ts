@@ -1,27 +1,36 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import { removeAvatar, uploadAvatar } from '@/features/profile/api/avatar';
 import type { AvatarAsset } from '@/features/profile/schemas/avatar';
+import { usersRoot } from '@/features/shared/query/keys';
 import type { User } from '@/features/shared/schemas/user';
 import { useSessionStore } from '@/features/shared/stores/session';
 import { useToastStore } from '@/features/shared/stores/toast';
 
-/** The answer is the updated account: into the session it goes, and its message into a toast. */
-function onSaved({ message, data }: { message: string; data: User }) {
+/**
+ * The answer is the updated account: into the session it goes, its message into a toast, and the
+ * users cache — which shows the same picture — is marked stale.
+ */
+function onSaved(queryClient: QueryClient, { message, data }: { message: string; data: User }) {
   useSessionStore.getState().replaceUser(data);
   useToastStore.getState().show(message);
+  void queryClient.invalidateQueries({ queryKey: usersRoot });
 }
 
 export function useUploadAvatarMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ id, asset }: { id: number; asset: AvatarAsset }) => uploadAvatar(id, asset),
-    onSuccess: onSaved,
+    onSuccess: (response) => onSaved(queryClient, response),
   });
 }
 
 export function useRemoveAvatarMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (id: number) => removeAvatar(id),
-    onSuccess: onSaved,
+    onSuccess: (response) => onSaved(queryClient, response),
   });
 }

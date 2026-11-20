@@ -6,6 +6,8 @@
     "@expo-google-fonts/figtree": "^0.4.1",
     "@expo/material-symbols": "^0.1.1",
     "@expo/ui": "~58.0.29",
+    "@react-native-community/netinfo": "12.0.1",
+    "@shopify/flash-list": "2.3.2",
     "@tanstack/react-query": "^5.108.1",
     "expo": "~58.0.26",
     "expo-constants": "~58.0.16",
@@ -21,6 +23,7 @@
     "expo-splash-screen": "~58.0.14",
     "expo-status-bar": "~58.0.5",
     "expo-symbols": "~58.0.5",
+    "expo-system-ui": "~58.0.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
@@ -75,6 +78,11 @@
     "setupFiles": [
       "<rootDir>/jest.setup.ts"
     ],
-    "resolver": "react-native-reanimated/jest/resolver.js"
+    "resolver": "react-native-reanimated/jest/resolver.js",
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|@shopify/flash-list))",
+      "/node_modules/react-native-reanimated/plugin/",
+      "/node_modules/@react-native/babel-preset/"
+    ]
   }
 }

@@ -8,6 +8,7 @@ import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { queryClient } from '@/lib/query-client';
+import { ErrorScreen } from '@/features/shared/components/error-screen';
 import { ToastHost } from '@/features/shared/components/toast-host';
 import { installUnauthorizedHandler, restoreSession } from '@/features/auth/session';
 import { useSessionStore } from '@/features/shared/stores/session';
@@ -16,6 +17,13 @@ import { useSessionStore } from '@/features/shared/stores/session';
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 300, fade: true });
 installUnauthorizedHandler();
+
+/**
+ * The last line of defence: an error that escapes every screen boundary — in a layout or a
+ * provider — replaces the app with this instead of a white screen. Screens have their own
+ * boundary in `(app)/_layout.tsx`, which keeps the tab bar and headers in place.
+ */
+export const ErrorBoundary = ErrorScreen;
 
 export default function RootLayout() {
   // Navigators (headers, screen backgrounds) take their colors from this theme, not from the
@@ -51,9 +59,11 @@ function RootNavigator() {
     if (status !== 'loading') SplashScreen.hide();
   }, [status]);
 
-  // The navigator always renders, so the router can resolve the launch URL. While the stored
-  // token is being checked the user counts as signed out — the native splash screen covers that
-  // moment, and a valid token then swaps the groups before anything is shown.
+  // Nothing is decided while the stored token is being checked — the native splash screen covers
+  // that moment. Deciding early would treat the user as signed out, redirect a launch URL
+  // (`/users/7` from a link or a notification) to the login, and lose it.
+  if (status === 'loading') return null;
+
   const signedIn = status === 'signedIn';
 
   return (

@@ -2,6 +2,7 @@ import { Host, TextInput, type TextInputProps, type TextInputRef } from '@expo/u
 import type { Ref } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { fieldAppearance } from '@/features/shared/components/form-field-appearance';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { labelColor } from '@/features/shared/utils/colors';
 import { font } from '@/features/shared/utils/typography';
@@ -28,15 +29,7 @@ export function FormField({ label, error, ref, ...input }: FormFieldProps) {
           ref={ref}
           accessibilityLabel={label}
           placeholderTextColor={palette.placeholder}
-          style={{
-            width: '100%',
-            paddingHorizontal: 14,
-            paddingVertical: 12,
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: error ? palette.danger : palette.fieldBorder,
-            backgroundColor: palette.fieldBackground,
-          }}
+          {...fieldAppearance(palette, Boolean(error))}
           textStyle={{ ...font(), fontSize: 17 }}
           {...input}
         />

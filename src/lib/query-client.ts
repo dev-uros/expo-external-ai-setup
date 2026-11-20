@@ -1,4 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
+import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
+import { AppState } from 'react-native';
 
 import { ApiError } from '@/lib/http';
 
@@ -21,4 +23,24 @@ export const queryClient = new QueryClient({
       retry: false,
     },
   },
+});
+
+/**
+ * TanStack Query learns about focus and connectivity from the browser; React Native has neither
+ * event, so without these two listeners stale data is never refetched when the app comes back
+ * to the foreground or the phone gets its connection back, and requests made offline fail
+ * instead of waiting.
+ *
+ * `isConnected` is `null` until NetInfo has looked — treated as online, so the first queries of
+ * a launch are not paused for nothing.
+ */
+onlineManager.setEventListener((setOnline) =>
+  NetInfo.addEventListener((state) => setOnline(state.isConnected !== false))
+);
+
+focusManager.setEventListener((setFocused) => {
+  const subscription = AppState.addEventListener('change', (status) =>
+    setFocused(status === 'active')
+  );
+  return () => subscription.remove();
 });

@@ -85,7 +85,9 @@ This is a native app, and it must feel like one on both platforms. These rules a
 - **Confirmations are toasts.** A success the user need not act on goes to `useToastStore.getState().show(message)` (the backend's `message`, as it arrives). `ToastHost` in the root layout draws it over the screen with a haptic — never as an inline banner, which shifts the layout when it comes and goes. Errors stay next to what failed.
 - **Confirm before losing work or signing out** with `ConfirmDialog` (`features/shared/components`): the system alert on iOS, a Material 3 dialog on Android; back button, back gesture and a tap outside all cancel.
 - **Feedback without blocking.** Pending actions disable their own button and show progress there; no full-screen blocking spinners. Errors appear next to what failed.
+- **Nothing to show is said in words.** Loading, a failed load, an empty list and a search with no matches each get `ScreenMessage` (`features/shared/components`): an icon, a sentence, at most one action ("Pokušaj ponovo"). A screen that crashes while rendering gets `ErrorScreen` in its place — configured once in `(app)/_layout.tsx` (`unstable_settings.screenErrorBoundary`, keeps the tab bar and headers) and as the root layout's `ErrorBoundary` for anything above the screens.
 - **Pictures and the camera — ask only for what is used.** Choosing a picture goes through the system photo picker (`launchImageLibraryAsync` from `expo-image-picker`): it hands over the one photo the user picked and needs **no permission** — never call `requestMediaLibraryPermissionsAsync` for it and never ask for full library access. Only the camera asks, at the moment it is opened, with the reason in the `expo-image-picker` plugin's `cameraPermission` text. Android's storage, media, partial-media and audio permissions are listed in `android.blockedPermissions` in `app.json` so no library can add them back; a feature that truly needs one removes it from there deliberately. A permission the user refused for good (`canAskAgain: false`) gets a dialog that opens the settings app (`Linking.openSettings()`), never a button that silently does nothing.
+- **Borders on `@expo/ui` views on iOS** go through SwiftUI modifiers, not the universal `style`: `@expo/ui` maps `borderWidth` + `borderRadius` to SwiftUI's rectangular `border` and then clips it round, which cuts the outline off at the corners. Paint the background in the shape (`background(color, shapes.roundedRectangle(...))`) and the outline with `strokeBorder` along the same shape, in an `.ios.ts` file — see `form-field-appearance.ios.ts`. Android's universal `style` keeps the corners whole.
 - **Text input details.** Correct `keyboardType`, `autoComplete` / autofill hints (so password managers work), `autoCapitalize="none"` and `autoCorrect={false}` for emails and identifiers.
 
 ## Architecture
@@ -106,6 +108,7 @@ src/
       hooks/                use-x.ts, feature-owned
       api/                  typed HTTP calls; responses parsed with this feature's Zod schemas
       query/                TanStack Query: keys.ts + use-x-query.ts / use-x-mutations.ts, wrapping api/
+      testing/              fixtures.ts — sample data the feature's tests share (never imported by app code)
       stores/               optional — feature-local client state (Zustand)
       schemas/              Zod schemas + their z.infer types
       utils/                pure helpers the feature owns
@@ -123,6 +126,9 @@ Create directories on demand; do not scatter equivalents elsewhere.
 
 - The feature folder is the unit of ownership. **No cross-feature imports** — if `users` needs something from `auth`, that something moves to `features/shared/` first. Promote code to `shared/` on the third use, not pre-emptively.
 - The root layout decides between `(app)` and `(auth)` with `Stack.Protected`, and each guard has an explicit `redirectTo` (SDK 58+) — `/` belongs to `(app)`, so without it a signed-out launch resolves to _Unmatched Route_. Screens never navigate after a login or logout; changing the session status is enough.
+- The root navigator renders nothing while the stored token is being checked (the splash covers it). Rendering the guards early treats the user as signed out and redirects a launch URL — a link, later a notification — to the login, losing it. `src/__tests__/auth-routing.test.tsx` holds this.
+- **Reference features.** `users` is the pattern for screens that read (list with search and pull to refresh, detail with the list row as placeholder, 404 and bad-param states); `profile` for screens that write (form in a modal, picker, confirmation). New features mirror them — the `new-feature` skill walks through the steps.
+- A query-key root that more than one feature touches (`users`: profile edits change a row in it) lives in `features/shared/query/keys.ts`; the owning feature builds its keys on it, the other invalidates it.
 - `(app)/_layout.tsx` is a Stack holding `(tabs)` and the modals. Declare a modal there (`presentation: 'modal'`), not inside a tab's stack — inside a tab it opens within the tab and the tab bar stays visible.
 - `NativeTabs` import from `expo-router/native-tabs`. The `expo-router/unstable-native-tabs` path some docs and skills still show is deprecated in SDK 58.
 - Route files in `src/app/` render a screen from `features/<feature>/screens/` and only read route params. No business logic, no data fetching, no markup that belongs in a screen or component. When one screen needs a piece another feature owns, **the route composes them** — the screen takes a slot prop and the route fills it (`(profile)/profile.tsx` renders `<ProfileScreen footer={<SignOutSection />} />`: the profile is `profile`'s, sign-out is `auth`'s). The route is the one place two features meet; neither imports the other.
@@ -165,6 +171,7 @@ These are project decisions that no skill covers — follow them exactly.
 - Anything fetched from a server → `useQuery` / `useMutation` / `useInfiniteQuery`, defined in the feature's `query/` folder.
 - Never hand-roll fetch-and-cache inside a Zustand store, and never mirror query results into store state. Zustand is for client-only state: UI state, drafts, preferences, cross-screen coordination.
 - Global Query defaults live in `src/lib/query-client.ts`. Tune per query at the call site rather than changing the global default.
+- `src/lib/query-client.ts` also connects `focusManager` to `AppState` and `onlineManager` to NetInfo — React Native has no browser focus or online events, and without them stale data is never refetched when the app returns to the foreground or the network comes back. Do not remove them; do not add per-screen `AppState` refetching either.
 - Every data screen designs four states — loading, error, empty, content — per the `expo-data-fetching` skill.
 
 ### Zod
@@ -186,7 +193,7 @@ src/features/auth/screens/login-screen.test.tsx
 ```
 
 - **Never put a test inside `src/app/`** — every file there becomes a route. Tests that need the router (redirects, guards, the auth flow) live in `src/__tests__/` and use `renderRouter` from `expo-router/testing-library` against the real `./src/app` directory.
-- `@expo/ui` controls render as native views, and Jest cannot type into or press them. Keep a screen's behaviour in a hook (`features/<feature>/hooks/use-x-form.ts`) and test the hook with `renderHook`; test the screen for what it shows; cover the typing and tapping with a Maestro flow.
+- `@expo/ui` controls render as native views, and Jest cannot type into them or read their labels. Keep a screen's behaviour in a hook (`features/<feature>/hooks/use-x-form.ts`) and test the hook with `renderHook`; test the screen for what it shows; cover the typing and tapping with a Maestro flow. A button Jest must press gets a `testID` (`ScreenMessage` derives `<testID>-action`).
 - Query by what the user sees (`getByRole`, `getByLabelText`, `getByText`) and interact with `userEvent`; `testID` is the last resort.
 - Mock the network at `src/lib/http.ts` or `fetch`, never inside feature code. A test never reaches a real backend.
 
@@ -221,6 +228,7 @@ Load the listed source for the task instead of working from memory. Their conten
 | HTTP, TanStack Query, auth tokens, offline                 | `expo-data-fetching`                                                                                         |
 | Performance: re-renders, FPS, lists, startup, bundle size  | `react-native-best-practices`                                                                                |
 | Builds, store submission, OTA updates, CI                  | `eas-app-stores`, `eas-update`, `eas-workflows`, `expo-dev-client`                                           |
+| Adding a feature (screen, list, detail, form)              | `new-feature` skill (this repo) — mirrors `users` / `profile`                                                |
 | Jest / component tests                                     | `react-native-testing` (RNTL v14) + https://docs.expo.dev/router/reference/testing.md for route tests        |
 | E2E flows, driving a simulator                             | **`maestro` MCP** + https://docs.maestro.dev                                                                 |
 | SDK upgrade                                                | `expo-upgrade`                                                                                               |

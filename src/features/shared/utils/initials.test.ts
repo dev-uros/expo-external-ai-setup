@@ -1,4 +1,4 @@
-import { initials } from '@/features/profile/utils/initials';
+import { initials } from '@/features/shared/utils/initials';
 
 test.each([
   ['Uroš', 'Minić', 'UM'],

@@ -16,6 +16,8 @@ const light = {
   avatarBackground: '#D6E4FF',
   success: '#1B6E35',
   successBackground: '#DCF5E3',
+  warning: '#8A4B00',
+  warningBackground: '#FFEFD6',
   avatarText: '#1D4ED8',
   cardBackground: '#FFFFFF',
 };
@@ -30,6 +32,8 @@ const dark: typeof light = {
   avatarBackground: '#1E3A8A',
   success: '#7EE2A0',
   successBackground: '#12301D',
+  warning: '#FFC56B',
+  warningBackground: '#3A2604',
   avatarText: '#DBEAFE',
   cardBackground: '#1C1C1E',
 };

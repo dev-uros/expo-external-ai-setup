@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { initials } from '@/features/profile/utils/initials';
+import { initials } from '@/features/shared/utils/initials';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { font } from '@/features/shared/utils/typography';
 

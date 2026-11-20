@@ -2,7 +2,7 @@ import { MenuView } from '@expo/ui/community/menu';
 import { SymbolView } from 'expo-symbols';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { UserAvatar } from '@/features/profile/components/user-avatar';
+import { UserAvatar } from '@/features/shared/components/user-avatar';
 import type { useAvatarEditor } from '@/features/profile/hooks/use-avatar-editor';
 import { ConfirmDialog } from '@/features/shared/components/confirm-dialog';
 import { usePalette } from '@/features/shared/hooks/use-palette';
