@@ -27,22 +27,72 @@ onFlowComplete:
 - assertNotVisible: 'Ukloni sliku'
 - tapOn: 'Izaberi iz galerije'
 
-# The system photo picker (Android's, not ours), then the circular crop.
-- tapOn:
-    text: 'Photo taken on.*'
-    index: 0
-- tapOn: 'Done'
-- tapOn:
-    id: 'crop_image_menu_crop'
-- extendedWaitUntil:
-    visible: 'Profilna slika je uspešno postavljena.'
-    timeout: 15000
+# The system photo picker (the platform's, not ours), then the crop: a circle on Android, a
+# square on iOS (iOS has no circular crop; the avatar is drawn round either way).
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          text: 'Photo taken on.*'
+          index: 0
+      - tapOn: 'Done'
+      - tapOn:
+          id: 'crop_image_menu_crop'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Up to iOS 26 the picker and its crop screen are in the accessibility tree; from iOS 27
+      # they run out of process and Maestro cannot see them, so they are tapped by position (the
+      # newest photo — the one added above — is first in the grid; "Choose" is bottom right).
+      # The position branch goes first: after it the photos are still invisible, so the text
+      # branch is skipped; in the other order the text branch would hide the photos and the
+      # position branch would then tap the profile screen.
+      # Lets the picker load first: on iOS 26 until its photos are listed, on iOS 27 (where they
+      # never are) for five seconds.
+      - extendedWaitUntil:
+          visible: 'Photo, [^,]+, [0-9]{2}:[0-9]{2}'
+          timeout: 5000
+          optional: true
+      - runFlow:
+          when:
+            notVisible: 'Photo, [^,]+, [0-9]{2}:[0-9]{2}'
+          commands:
+            - tapOn:
+                point: '16%,24%'
+            - waitForAnimationToEnd
+            - tapOn:
+                point: '89%,92%'
+      - runFlow:
+          when:
+            visible: 'Photo, [^,]+, [0-9]{2}:[0-9]{2}'
+          commands:
+            - tapOn:
+                text: 'Photo, [^,]+, [0-9]{2}:[0-9]{2}'
+                index: 0
+            - tapOn: 'Choose'
+# The backend's confirmation as a toast. On iOS 27 the position taps above take long enough that
+# the toast (about three seconds) may already be gone, so there it is not required; the menu
+# offering removal below proves the picture was saved on both platforms.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - extendedWaitUntil:
+          visible: 'Profilna slika je uspešno postavljena.'
+          timeout: 15000
 
 # Now it can be removed — after a confirmation.
 - tapOn: 'Promeni profilnu sliku'
+- extendedWaitUntil:
+    visible: 'Ukloni sliku'
+    timeout: 10000
 - tapOn: 'Ukloni sliku'
 - assertVisible: 'Ukloniti profilnu sliku?'
-- tapOn: 'Ukloni'
+- tapOn:
+    text: 'Ukloni'
+    below: 'Ukloniti profilnu sliku\?'
 - extendedWaitUntil:
     visible: 'Profilna slika je uspešno uklonjena.'
     timeout: 15000

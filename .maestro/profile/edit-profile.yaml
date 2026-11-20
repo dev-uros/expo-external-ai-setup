@@ -29,10 +29,20 @@ onFlowComplete:
 - tapOn: 'Sačuvaj'
 - assertVisible: 'Unesite ime'
 
-# Unsaved changes: leaving asks first; back dismisses the question and keeps the form.
+# Unsaved changes: leaving asks first; dismissing the question keeps the form — the system back
+# button on Android, the alert's cancel button on iOS.
 - tapOn: 'Otkaži'
 - assertVisible: 'Odbaciti izmene?'
-- back
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Nastavi izmenu'
 - assertNotVisible: 'Odbaciti izmene?'
 - assertVisible: 'Izmena profila'
 # "Odbaci" leaves, and nothing was saved.

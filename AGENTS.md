@@ -203,6 +203,8 @@ src/features/auth/screens/login-screen.test.tsx
 - Select elements by visible text or accessibility label, the same way a user finds them. Anything a flow must see must be an accessibility element — `pointerEvents="none"` drops a view from the Android accessibility tree, for TalkBack and Maestro alike.
 - To replace a field's text, tap its right-hand end (`point: '95%,50%'`) and then `eraseText: 100`; a plain tap puts the cursor mid-text and only part of it is erased.
 - The demo database is shared. A flow that writes restores what it changed in `onFlowComplete` with a script in `.maestro/scripts/` (runs on the host, pass or fail), signing in with an account the flow does not modify.
+- **Every flow passes on both platforms** (`maestro --platform ios|android test .maestro`). Where the platforms differ, branch with `runFlow: when: platform: …` and say why in a comment. Known differences: `back` exists only on Android (an iOS alert closes with its cancel button); on iOS the screen's own button stays in the hierarchy behind an alert, so a dialog button that shares its label is picked with `below: '<question>'`; a view marked `accessible` hides its child texts on iOS (assert its label instead); from iOS 27 the system photo picker and crop screen run out of process and are invisible to Maestro, so they are tapped by position. Assert lasting state rather than a toast when earlier steps may outlast it.
+- A flow that writes also resets in `onFlowStart`, so a run that died half-way does not break the next one.
 - Start the Android emulator with `-no-audio` (`emulator -avd <name> -no-audio`): with audio on, it can hang in macOS CoreAudio and get killed by its own hang detector mid-run.
 
 ## Skill, MCP & docs routing
