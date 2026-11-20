@@ -1,0 +1,2 @@
+# Third-party agent skills, managed by `npx skills` (see skills-lock.json)
+.claude/skills/

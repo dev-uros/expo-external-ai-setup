@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "skills": {
+    "react-native-best-practices": {
+      "source": "callstackincubator/agent-skills",
+      "commit": "59e9d17446a248b21d86f078fcd0bd2d36db1ca4",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-best-practices/SKILL.md",
+      "computedHash": "03a527a04426ca72763396170997a51d6d07600100a549f09915a6b4e8dc10c1",
+      "installMode": "copy"
+    },
+    "react-native-testing": {
+      "source": "callstack/react-native-testing-library",
+      "commit": "564a84294717d8e4b0831f3e3a5e115cc3832e01",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-testing/SKILL.md",
+      "computedHash": "9bed4271c080eb6ff6745db5a634b28552571f197d6b5efe58a734e75fe162f0",
+      "installMode": "copy"
+    }
+  }
+}

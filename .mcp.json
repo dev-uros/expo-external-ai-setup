@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "zod": {
+      "type": "http",
+      "url": "https://share.inkeep.com/zod/mcp"
+    },
+    "maestro": {
+      "type": "stdio",
+      "command": "maestro",
+      "args": ["mcp"],
+      "env": {}
+    }
+  }
+}
