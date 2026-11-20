@@ -1,0 +1,60 @@
+# Happy path: sign in, land on home, the session survives a restart, the profile shows who is
+# signed in, and signing out asks first.
+appId: com.example.backoffice
+tags: [auth]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: uros.minic@fifthguild.com
+      PASSWORD: password
+- extendedWaitUntil:
+    visible: 'Dobro došli, Uroš.'
+    timeout: 15000
+# Restart without clearing anything: the stored token is checked with /auth/me.
+- stopApp
+- runFlow: ../shared/open-dev-server.yaml
+- extendedWaitUntil:
+    visible: 'Dobro došli, Uroš.'
+    timeout: 30000
+- tapOn: 'Profil'
+- assertVisible: 'Uroš Minić'
+- assertVisible: 'Administrator'
+# The admin has no picture: initials stand in.
+- assertVisible: 'UM'
+
+# The confirmation closes on the system back button without signing out.
+- tapOn: 'Odjavi se'
+- assertVisible: 'Da li ste sigurni da želite da se odjavite?'
+- back
+- assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
+- assertVisible: 'Uroš Minić'
+
+# ...and on the Android back gesture (a swipe in from the screen edge).
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: 'Odjavi se'
+      - assertVisible: 'Da li ste sigurni da želite da se odjavite?'
+      - swipe:
+          start: 0%, 50%
+          end: 60%, 50%
+          duration: 300
+      - assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
+      - assertVisible: 'Uroš Minić'
+
+# Cancel keeps the session too.
+- tapOn: 'Odjavi se'
+- tapOn: 'Otkaži'
+- assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
+- assertVisible: 'Uroš Minić'
+
+# Confirming signs out. While the dialog is up, its button is the only one with that label.
+- tapOn: 'Odjavi se'
+- assertVisible: 'Da li ste sigurni da želite da se odjavite?'
+- tapOn: 'Odjavi se'
+- extendedWaitUntil:
+    visible: 'Prijavite se svojim poslovnim nalogom.'
+    timeout: 15000

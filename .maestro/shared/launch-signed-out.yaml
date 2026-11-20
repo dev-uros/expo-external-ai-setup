@@ -1,0 +1,19 @@
+# Starts the development build from nothing — no app data, no stored token — and points it at
+# the running Metro server (`npm start`). The query parameters skip the dev client's onboarding
+# menu and floating button, which would otherwise cover the app.
+appId: com.example.backoffice
+---
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - clearKeychain
+- launchApp:
+    clearState: true
+    stopApp: true
+    permissions:
+      all: allow
+- runFlow: open-dev-server.yaml
+- extendedWaitUntil:
+    visible: 'Prijavite se svojim poslovnim nalogom.'
+    timeout: 60000

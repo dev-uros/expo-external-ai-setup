@@ -1,0 +1,72 @@
+# An admin edits their own profile: local validation, leaving with unsaved changes (back
+# dismisses the question, "Odbaci" leaves), a taken email (422 from the server), and a save that
+# comes back to the profile with the backend's message.
+appId: com.example.backoffice
+tags: [profile]
+onFlowComplete:
+  - runScript: ../scripts/reset-milica.js
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: milica.jovanovic@fifthguild.com
+      PASSWORD: password
+- extendedWaitUntil:
+    visible: 'Dobro došli, Milica.'
+    timeout: 15000
+- tapOn: 'Profil'
+- assertVisible: 'milica.jovanovic@fifthguild.com'
+
+# Local validation: an emptied name never reaches the server.
+- tapOn: 'Izmeni profil'
+- assertVisible: 'Izmena profila'
+# Tap the right-hand end so the cursor sits after the text, then clear all of it.
+- tapOn:
+    id: 'profile-name'
+    point: '95%,50%'
+- eraseText: 100
+- tapOn: 'Sačuvaj'
+- assertVisible: 'Unesite ime'
+
+# Unsaved changes: leaving asks first; back dismisses the question and keeps the form.
+- tapOn: 'Otkaži'
+- assertVisible: 'Odbaciti izmene?'
+- back
+- assertNotVisible: 'Odbaciti izmene?'
+- assertVisible: 'Izmena profila'
+# "Odbaci" leaves, and nothing was saved.
+- tapOn: 'Otkaži'
+- tapOn: 'Odbaci'
+- assertVisible: 'Milica Jovanović'
+
+# A taken email: the server's 422 lands under the field, and the form stays open.
+- tapOn: 'Izmeni profil'
+# Tap the right-hand end so the cursor sits after the text, then clear all of it.
+- tapOn:
+    id: 'profile-email'
+    point: '95%,50%'
+- eraseText: 100
+- inputText: 'uros.minic@fifthguild.com'
+- tapOn: 'Sačuvaj'
+- extendedWaitUntil:
+    visible: 'The email has already been taken.'
+    timeout: 15000
+- assertVisible: 'Izmena profila'
+- tapOn: 'Otkaži'
+- tapOn: 'Odbaci'
+
+# A real save: back on the profile with the backend's message and the new surname.
+- tapOn: 'Izmeni profil'
+# Tap the right-hand end so the cursor sits after the text, then clear all of it.
+- tapOn:
+    id: 'profile-surname'
+    point: '95%,50%'
+- eraseText: 100
+- inputText: 'Jovanović Test'
+- tapOn: 'Sačuvaj'
+- extendedWaitUntil:
+    visible: 'Korisnik uspešno ažuriran.'
+    timeout: 15000
+- assertVisible: 'Milica Jovanović Test'
+- assertNotVisible: 'Izmena profila'

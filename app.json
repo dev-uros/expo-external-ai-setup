@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "expo-mobile-ai-setup",
+    "name": "Backoffice",
     "slug": "expo-mobile-ai-setup",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.backoffice"
     },
     "android": {
       "adaptiveIcon": {
@@ -16,9 +17,55 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.example.backoffice",
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
-    "plugins": ["expo-router", "expo-status-bar", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "expo-image",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/figtree/400Regular/Figtree_400Regular.ttf",
+            "node_modules/@expo-google-fonts/figtree/500Medium/Figtree_500Medium.ttf",
+            "node_modules/@expo-google-fonts/figtree/600SemiBold/Figtree_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/figtree/700Bold/Figtree_700Bold.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Backoffice koristi kameru da biste fotografisali profilnu sliku.",
+          "photosPermission": "Backoffice pristupa izabranoj fotografiji da biste je postavili kao profilnu sliku.",
+          "microphonePermission": false
+        }
+      ]
+    ],
     "scheme": "expo-mobile-ai-setup",
     "experiments": {
       "typedRoutes": true,

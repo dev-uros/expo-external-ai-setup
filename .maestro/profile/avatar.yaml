@@ -1,0 +1,50 @@
+# A plain user sets their own picture from the gallery and removes it again. The gallery goes
+# through the system photo picker — the app holds no storage or media permission — and the
+# picture is cropped to a circle before it is uploaded.
+appId: com.example.backoffice
+tags: [profile]
+onFlowStart:
+  - runScript: ../scripts/reset-ana-avatar.js
+onFlowComplete:
+  - runScript: ../scripts/reset-ana-avatar.js
+---
+- addMedia:
+    - '../fixtures/avatar.png'
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: ana.nikolic@fifthguild.com
+      PASSWORD: password
+- extendedWaitUntil:
+    visible: 'Dobro došli, Ana.'
+    timeout: 15000
+- tapOn: 'Profil'
+
+# No picture yet: the menu offers no removal.
+- tapOn: 'Promeni profilnu sliku'
+- assertVisible: 'Fotografiši'
+- assertNotVisible: 'Ukloni sliku'
+- tapOn: 'Izaberi iz galerije'
+
+# The system photo picker (Android's, not ours), then the circular crop.
+- tapOn:
+    text: 'Photo taken on.*'
+    index: 0
+- tapOn: 'Done'
+- tapOn:
+    id: 'crop_image_menu_crop'
+- extendedWaitUntil:
+    visible: 'Profilna slika je uspešno postavljena.'
+    timeout: 15000
+
+# Now it can be removed — after a confirmation.
+- tapOn: 'Promeni profilnu sliku'
+- tapOn: 'Ukloni sliku'
+- assertVisible: 'Ukloniti profilnu sliku?'
+- tapOn: 'Ukloni'
+- extendedWaitUntil:
+    visible: 'Profilna slika je uspešno uklonjena.'
+    timeout: 15000
+- tapOn: 'Promeni profilnu sliku'
+- assertNotVisible: 'Ukloni sliku'

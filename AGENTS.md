@@ -41,19 +41,19 @@ Several of these post-date common training data (Expo SDK 58, React Native 0.88,
 
 ## Commands
 
-| Command                           | Notes                                                                                                     |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `npx expo install <package>`      | **the only way to add or update a package** — resolves SDK-compatible versions; never `npm install <pkg>` |
-| `npx expo install --check`        | verify every dependency matches the SDK (`--fix` repairs)                                                 |
-| `npm start`                       | dev server (`expo start`)                                                                                 |
-| `npm run start:mcp`               | dev server with the Expo MCP local tools enabled (screenshots, taps, logs)                                |
-| `npm run ios` / `npm run android` | dev server + open on a simulator / emulator                                                               |
-| `npm run lint`                    | `expo lint` — ESLint with Expo, React Compiler, hooks and Prettier rules                                  |
-| `npm run format`                  | `prettier --write .`                                                                                      |
-| `npx tsc --noEmit`                | typecheck                                                                                                 |
-| `npx expo-doctor`                 | diagnose dependency and config issues                                                                     |
-| `npm test`                        | Jest — unit, component and route tests (`npm run test:watch` while working)                               |
-| `maestro test .maestro/<feature>` | E2E flows for one feature, against an app installed on a booted simulator / emulator                      |
+| Command                           | Notes                                                                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `npx expo install <package>`      | **the only way to add or update a package** — resolves SDK-compatible versions; never `npm install <pkg>`                         |
+| `npx expo install --check`        | verify every dependency matches the SDK (`--fix` repairs)                                                                         |
+| `npm start`                       | dev server (`expo start`)                                                                                                         |
+| `npm run start:mcp`               | dev server with the Expo MCP local tools enabled (screenshots, taps, logs)                                                        |
+| `npm run ios` / `npm run android` | build the development build and run it on a simulator / emulator (`expo run:*`); Android also runs `adb reverse` for the API port |
+| `npm run lint`                    | `expo lint` — ESLint with Expo, React Compiler, hooks and Prettier rules                                                          |
+| `npm run format`                  | `prettier --write .`                                                                                                              |
+| `npx tsc --noEmit`                | typecheck                                                                                                                         |
+| `npx expo-doctor`                 | diagnose dependency and config issues                                                                                             |
+| `npm test`                        | Jest — unit, component and route tests (`npm run test:watch` while working)                                                       |
+| `maestro test .maestro/<feature>` | E2E flows for one feature, against an app installed on a booted simulator / emulator                                              |
 
 **Definition of done for any code change:** `npm run lint`, `npx tsc --noEmit` and `npm test` pass, and `npx expo install --check` passes when a dependency changed.
 
@@ -68,7 +68,7 @@ Run all of it before reporting the task as complete and report what ran. Do not 
 ## Expo rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation) and git-ignored. Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
+- **This app does not run in Expo Go** — `react-native-keyboard-controller` is native code Expo Go does not ship. Work in the development build (`expo-dev-client`): `npm run ios` / `npm run android` build it locally; rebuild after adding any library with native code or changing a config plugin. `expo run:*` does not re-apply config plugins to an existing `ios/` / `android/` folder — after changing `plugins` in `app.json` (fonts, splash, permissions), run `npx expo prebuild --clean` first, then rebuild.
 - Prefer Expo modules over third-party libraries, and check the available skills before adding a dependency. For UI controls (sheets, pickers, menus, switches), check `@expo/ui` first. Docs: https://docs.expo.dev/versions/latest/index.md
 - Environment variables reach the app only with the `EXPO_PUBLIC_` prefix and are inlined at **build** time. Everything with that prefix is readable in the shipped app — nothing secret may ever become one.
 
@@ -79,8 +79,13 @@ This is a native app, and it must feel like one on both platforms. These rules a
 - **Safe areas.** Use `react-native-safe-area-context` (`useSafeAreaInsets` / its `SafeAreaView`), never React Native's own `SafeAreaView`. Android is always edge-to-edge, so content goes under the status and navigation bars unless insets are applied. Scroll views under a native header use `contentInsetAdjustmentBehavior="automatic"` instead of manual padding. Check notch / Dynamic Island, home indicator and the Android gesture bar on every screen.
 - **Keyboard.** Handle it with `react-native-keyboard-controller` — content moves with the keyboard frame by frame and never jumps or snaps. Forms chain inputs with the return key (`returnKeyType="next"` → focus the next field, `"go"` / `"done"` on the last submits), tapping outside a field dismisses the keyboard, and the focused field plus its submit button stay visible above the keyboard. Never use React Native's `KeyboardAvoidingView` or `softwareKeyboardLayoutMode: "pan"`.
 - **Native controls first.** Native stack headers, `NativeTabs`, `@expo/ui` controls and inputs, native menus and sheets. A custom-drawn control needs a reason.
+- **Light and dark mode.** `userInterfaceStyle` is `automatic`; every screen must work in both. Navigators take their colors from the `ThemeProvider` in the root layout (`DarkTheme` / `DefaultTheme`, imported from `expo-router` in SDK 58) — without it headers and screen backgrounds stay light in dark mode. Check new screens in both modes (`adb shell cmd uimode night yes|no` on the Android emulator).
 - **Platform conventions.** Semantic platform colors with light and dark mode (`Color` from `expo-router`), SF Symbols on iOS and Material icons on Android, system font sizes that respect Dynamic Type / font scaling. Do not make Android look like iOS or the reverse.
+- **Typography.** The typeface is Figtree, embedded at build time by the `expo-font` config plugin in `app.json` (Expo's recommended method — no runtime loading, nothing for the splash screen to wait for). Every piece of text takes its face from `font()` in `features/shared/utils/typography.ts` — React Native `Text`, `@expo/ui` text and inputs (`textStyle`), SwiftUI `font()` modifiers, headers and tab labels. **A weight is selected by naming its face, never with `fontWeight`**: iOS faces are the PostScript names inside the files (`Figtree-SemiBold`), Android faces the file names the plugin registers (`Figtree_600SemiBold`). This is deliberate, not a workaround to undo: `@expo/ui`'s Compose text on Android resolves a custom family to its regular face and ignores `fontWeight`, and Expo's own Compose custom-font example names the face (`'Inter-Bold'`). So never write `fontFamily` or `fontWeight` by hand, and never switch `font()` back to family + weight. A new weight needs its file in the plugin's `fonts`, an entry in `IOS_FACES` and `ANDROID_FACES`, `npx expo prebuild --clean` and a new build; `typography.test.ts` fails until all of them agree.
+- **Confirmations are toasts.** A success the user need not act on goes to `useToastStore.getState().show(message)` (the backend's `message`, as it arrives). `ToastHost` in the root layout draws it over the screen with a haptic — never as an inline banner, which shifts the layout when it comes and goes. Errors stay next to what failed.
+- **Confirm before losing work or signing out** with `ConfirmDialog` (`features/shared/components`): the system alert on iOS, a Material 3 dialog on Android; back button, back gesture and a tap outside all cancel.
 - **Feedback without blocking.** Pending actions disable their own button and show progress there; no full-screen blocking spinners. Errors appear next to what failed.
+- **Pictures and the camera — ask only for what is used.** Choosing a picture goes through the system photo picker (`launchImageLibraryAsync` from `expo-image-picker`): it hands over the one photo the user picked and needs **no permission** — never call `requestMediaLibraryPermissionsAsync` for it and never ask for full library access. Only the camera asks, at the moment it is opened, with the reason in the `expo-image-picker` plugin's `cameraPermission` text. Android's storage, media, partial-media and audio permissions are listed in `android.blockedPermissions` in `app.json` so no library can add them back; a feature that truly needs one removes it from there deliberately. A permission the user refused for good (`canAskAgain: false`) gets a dialog that opens the settings app (`Linking.openSettings()`), never a button that silently does nothing.
 - **Text input details.** Correct `keyboardType`, `autoComplete` / autofill hints (so password managers work), `autoCapitalize="none"` and `autoCorrect={false}` for emails and identifiers.
 
 ## Architecture
@@ -117,7 +122,10 @@ Create directories on demand; do not scatter equivalents elsewhere.
 ### Feature rules
 
 - The feature folder is the unit of ownership. **No cross-feature imports** — if `users` needs something from `auth`, that something moves to `features/shared/` first. Promote code to `shared/` on the third use, not pre-emptively.
-- Route files in `src/app/` render a screen from `features/<feature>/screens/` and only read route params. No business logic, no data fetching, no markup that belongs in a screen or component.
+- The root layout decides between `(app)` and `(auth)` with `Stack.Protected`, and each guard has an explicit `redirectTo` (SDK 58+) — `/` belongs to `(app)`, so without it a signed-out launch resolves to _Unmatched Route_. Screens never navigate after a login or logout; changing the session status is enough.
+- `(app)/_layout.tsx` is a Stack holding `(tabs)` and the modals. Declare a modal there (`presentation: 'modal'`), not inside a tab's stack — inside a tab it opens within the tab and the tab bar stays visible.
+- `NativeTabs` import from `expo-router/native-tabs`. The `expo-router/unstable-native-tabs` path some docs and skills still show is deprecated in SDK 58.
+- Route files in `src/app/` render a screen from `features/<feature>/screens/` and only read route params. No business logic, no data fetching, no markup that belongs in a screen or component. When one screen needs a piece another feature owns, **the route composes them** — the screen takes a slot prop and the route fills it (`(profile)/profile.tsx` renders `<ProfileScreen footer={<SignOutSection />} />`: the profile is `profile`'s, sign-out is `auth`'s). The route is the one place two features meet; neither imports the other.
 - `api/` returns parsed, typed data. `query/` wraps it in `useQuery` / `useMutation` and owns the query keys (nested under one root per feature, so a write invalidates the whole feature by prefix). Screens and components call `query/`, never `api/` directly.
 - `src/lib/` is the only place a third-party library is configured — one module per library, no domain knowledge (no endpoints, schemas, or feature types). Feature code imports the `lib/` module, never the bare package, and never calls raw `fetch`.
 - `lib/` wraps **someone else's** code; `features/shared/` holds **our** code. A file that imports from `features/` does not belong in `lib/`.
@@ -131,7 +139,7 @@ Create directories on demand; do not scatter equivalents elsewhere.
 - `message` is written by the backend for the end user. Show it as it arrives; do not invent replacement copy. A 422 maps onto the form fields it names.
 - Request field names are the API's (snake_case included) all the way into the Zod schemas and form fields, so a 422 lands on its field without a lookup table.
 - The **token lives in expo-secure-store** (never AsyncStorage); the **user lives in memory only**. On launch the root layout trades the token for `GET /auth/me` and renders nothing (splash) until that resolves, then routes to `(auth)` or `(app)`. Never persist the user: a cached role outlives the server's opinion of it.
-- `localhost` is the device's own loopback, not your machine: the Android emulator reaches the host as `10.0.2.2`, and a physical device needs the machine's LAN address. Set `EXPO_PUBLIC_API_URL` accordingly.
+- `EXPO_PUBLIC_API_URL` comes from `.env.local` (copy `.env.example`). `localhost` is the device's own loopback: the iOS simulator shares the Mac's, and `npm run android` maps the emulator's port 8000 to the Mac with `adb reverse`, so `http://localhost:8000/api` works on both. A physical device needs the Mac's LAN address.
 - Hiding a control a user may not press is a courtesy; the API answers 403 regardless.
 
 ### Conventions
@@ -178,6 +186,7 @@ src/features/auth/screens/login-screen.test.tsx
 ```
 
 - **Never put a test inside `src/app/`** — every file there becomes a route. Tests that need the router (redirects, guards, the auth flow) live in `src/__tests__/` and use `renderRouter` from `expo-router/testing-library` against the real `./src/app` directory.
+- `@expo/ui` controls render as native views, and Jest cannot type into or press them. Keep a screen's behaviour in a hook (`features/<feature>/hooks/use-x-form.ts`) and test the hook with `renderHook`; test the screen for what it shows; cover the typing and tapping with a Maestro flow.
 - Query by what the user sees (`getByRole`, `getByLabelText`, `getByText`) and interact with `userEvent`; `testID` is the last resort.
 - Mock the network at `src/lib/http.ts` or `fetch`, never inside feature code. A test never reaches a real backend.
 
@@ -190,7 +199,11 @@ src/features/auth/screens/login-screen.test.tsx
 
 - Flows run against the app installed on a booted simulator / emulator (`npm run ios` / `npm run android`) talking to the **live local backend**, so the backend must be up with its demo data.
 - `appId` in each flow is `ios.bundleIdentifier` / `android.package` from `app.json`.
-- Select elements by visible text or accessibility label, the same way a user finds them.
+- Before running flows on an Android emulator, turn off stylus handwriting once: `adb shell settings put secure stylus_handwriting_enabled 0`. Otherwise a tap into a text field sometimes opens handwriting mode instead of the keyboard, and the next step fails for no reason in the app.
+- Select elements by visible text or accessibility label, the same way a user finds them. Anything a flow must see must be an accessibility element — `pointerEvents="none"` drops a view from the Android accessibility tree, for TalkBack and Maestro alike.
+- To replace a field's text, tap its right-hand end (`point: '95%,50%'`) and then `eraseText: 100`; a plain tap puts the cursor mid-text and only part of it is erased.
+- The demo database is shared. A flow that writes restores what it changed in `onFlowComplete` with a script in `.maestro/scripts/` (runs on the host, pass or fail), signing in with an account the flow does not modify.
+- Start the Android emulator with `-no-audio` (`emulator -avd <name> -no-audio`): with audio on, it can hang in macOS CoreAudio and get killed by its own hang detector mid-run.
 
 ## Skill, MCP & docs routing
 

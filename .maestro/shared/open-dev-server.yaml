@@ -1,0 +1,21 @@
+# Cold-starts the development build straight into the bundle from Metro on localhost:8081
+# (`adb reverse` on Android). The `__expo_*` flags are the ones Expo CLI itself uses: no launcher
+# screen, no first-run dev menu, and no floating dev-menu button — it sits over the header's
+# right-hand buttons and would take their taps.
+appId: com.example.backoffice
+---
+- stopApp
+- openLink: 'exp+expo-mobile-ai-setup://?__expo_url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&__expo_disable_auto_launch=1&__expo_disable_onboarding=1'
+- extendedWaitUntil:
+    visible: 'Prijavite se svojim poslovnim nalogom.|Runtime version.*|Dobro došli.*'
+    timeout: 60000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow:
+    when:
+      visible: 'Runtime version.*'
+    commands:
+      - tapOn: 'Close'

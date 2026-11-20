@@ -1,0 +1,17 @@
+# A plain user may read their profile but not edit it — the API answers 403 for them, so the app
+# does not offer the button at all.
+appId: com.example.backoffice
+tags: [profile]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: ana.nikolic@fifthguild.com
+      PASSWORD: password
+- extendedWaitUntil:
+    visible: 'Dobro došli, Ana.'
+    timeout: 15000
+- tapOn: 'Profil'
+- assertVisible: 'Korisnik'
+- assertNotVisible: 'Izmeni profil'

@@ -1,0 +1,14 @@
+# Local validation, before anything is sent: empty form, then a malformed email.
+appId: com.example.backoffice
+tags: [auth]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- tapOn: 'Prijavi se'
+- assertVisible: 'Unesite ispravnu email adresu'
+- assertVisible: 'Unesite lozinku'
+- tapOn:
+    id: 'login-email'
+- inputText: 'ana'
+- assertNotVisible: 'Unesite ispravnu email adresu'
+- tapOn: 'Prijavi se'
+- assertVisible: 'Unesite ispravnu email adresu'
