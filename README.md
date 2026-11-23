@@ -34,16 +34,26 @@ connections reach Docker (port 8000) and Node (Metro, 8081). An Android phone on
 `adb reverse tcp:8000 tcp:8000` and keep `localhost` instead. The address changes with the
 network, so check it again when the app suddenly says the server is unreachable.
 
+### Three apps on one phone
+
+One codebase builds three apps that install side by side — **Name (Dev)**, **Name (Test)** and
+**Name** — each with its own bundle id, API and Sentry environment. Local work is always the dev
+app (`APP_VARIANT=development` in `.env.local`); EAS builds the others:
+`npm run build:dev` / `build:preview` / `build:production`. All three run locally with no account;
+details in [`docs/builds.md`](docs/builds.md).
+
 ### Accounts each project needs
 
-The template is bound to no account. Everything runs locally without them; these are set up once
-per project, under the client's or the company's organization — never a personal account:
+The template is bound to no account. Everything runs locally without them, all three app
+variants included. These are set up once per project, under the client's or the company's
+organization — never a personal account:
 
 | Account                             | For                                   | Without it                               | Setup                                                      |
 | ----------------------------------- | ------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| Expo (organization on expo.dev)     | EAS builds, push tokens               | no push, no EAS builds                   | [`docs/push-notifications.md`](docs/push-notifications.md) |
+| Expo (organization on expo.dev)     | EAS builds, push tokens               | no push, no EAS builds                   | [`docs/builds.md`](docs/builds.md)                         |
 | Firebase project (free)             | push on Android                       | Android gets no push                     | [`docs/push-notifications.md`](docs/push-notifications.md) |
 | Apple Developer (paid)              | push on iOS, TestFlight, App Store    | iOS gets no push, no distribution        | [`docs/push-notifications.md`](docs/push-notifications.md) |
+| Google Play Developer (one-off fee) | Play Store                            | no Play Store release                    | [`docs/builds.md`](docs/builds.md)                         |
 | Sentry (free plan: 5k errors/month) | crash and error reports from releases | the app works; nobody sees users' errors | [`docs/sentry.md`](docs/sentry.md)                         |
 
 ### Seeded sign-in accounts

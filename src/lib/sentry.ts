@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 import type { ComponentType } from 'react';
 
 /**
@@ -18,7 +19,8 @@ export function initSentry(): void {
   Sentry.init({
     dsn: DSN,
     enabled: !__DEV__,
-    environment: process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT || 'production',
+    // The app variant (docs/builds.md): testers' errors stay apart from production's.
+    environment: String(Constants.expoConfig?.extra?.appVariant ?? 'production'),
     // Internal users: the account id is enough to find the person; no IP, no headers.
     sendDefaultPii: false,
   });

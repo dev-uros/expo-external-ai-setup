@@ -1,7 +1,7 @@
 # A plain user sets their own picture from the gallery and removes it again. The gallery goes
 # through the system photo picker — the app holds no storage or media permission — and the
 # picture is cropped to a circle before it is uploaded.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [profile]
 onFlowStart:
   - runScript: ../scripts/reset-ana-avatar.js

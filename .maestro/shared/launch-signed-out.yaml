@@ -5,7 +5,7 @@
 # Every permission is granted up front, so no system prompt interrupts a flow. Input
 # NOTIFICATIONS (`allow` by default) overrides the notification permission: `unset` lets the app's
 # own prompt after sign-in appear, which the notifications flows answer.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 ---
 - runFlow:
     when:

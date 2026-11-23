@@ -1,6 +1,6 @@
 # Happy path: sign in, land on home, the session survives a restart, the profile shows who is
 # signed in, and signing out asks first.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [auth]
 ---
 - runFlow: ../shared/launch-signed-out.yaml
@@ -57,8 +57,11 @@ tags: [auth]
 - assertVisible: 'Uroš Minić'
 
 # Confirming signs out. On iOS the screen's own "Odjavi se" stays in the hierarchy behind the
-# alert, and where it sits depends on the screen's layout; the alert is drawn last, so its button
-# is the last match. Android's dialog leaves only one.
+# alert, and Maestro orders the matches top to bottom (`below:` / `rightOf:` pick the screen's
+# button too). The alert sits mid-screen and the profile's button lower, under the account,
+# appearance and notifications cards, so the alert's button comes first. A profile layout that
+# moves the button above the middle of the screen needs index 1 here. Android's dialog leaves
+# only one.
 - tapOn: 'Odjavi se'
 - assertVisible: 'Da li ste sigurni da želite da se odjavite?'
 - runFlow:
@@ -67,7 +70,7 @@ tags: [auth]
     commands:
       - tapOn:
           text: 'Odjavi se'
-          index: 1
+          index: 0
 - runFlow:
     when:
       platform: Android

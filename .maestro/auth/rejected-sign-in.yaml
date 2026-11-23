@@ -1,5 +1,5 @@
 # The backend's answers, shown as it wrote them: wrong password (401), switched-off account (403).
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [auth]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

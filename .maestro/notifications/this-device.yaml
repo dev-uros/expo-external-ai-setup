@@ -6,7 +6,7 @@
 # to send to: the section says sending is not set up and offers no action. In a project with
 # EAS_PROJECT_ID and credentials set (docs/push-notifications.md) the state is "Uključena na
 # ovom uređaju." with the test button instead — change the two assertions below then.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [notifications]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

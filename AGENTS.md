@@ -274,6 +274,8 @@ Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submi
 
 Never run `eas init` in the template: it binds the project to one Expo account. Each generated project runs it once, under the team's Expo organization.
 
+**Three app variants** (`docs/builds.md`): `APP_VARIANT` = `development` | `preview` | `production`, read by `app.config.ts`. Each has its own bundle id / package (`.dev`, `.preview` suffix on `app.json`'s production id), name suffix (`(Dev)`, `(Test)`) and URL scheme, so all three install side by side; the variant also picks the Sentry environment (`extra.appVariant`) and the iOS push environment. `.env.local` sets `development`, so local work (`npm run ios` / `android`, Maestro flows on `<id>.dev`) is always the dev app; each `eas.json` profile sets its own variant and EAS environment; unset means `production`. Never hard-code a variant's id elsewhere — derive it in `app.config.ts`. Switching the variant of an existing `ios/` / `android/` folder needs `npx expo prebuild --clean`. Builds: `npm run build:dev` / `build:preview` / `build:production`, `npm run submit:production`.
+
 ## House style
 
 Prettier (`.prettierrc`, Expo's own style): single quotes, semicolons, print width 100, `trailingComma: es5`. Do not fight the formatter — run `npm run format`. Write comments only where the reason for the code is not obvious from the code.

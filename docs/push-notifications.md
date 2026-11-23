@@ -92,7 +92,12 @@ još nije podešeno za ovu aplikaciju." — to je očekivano stanje template-a.
   placeholder. Firebase i Apple vezuju kredencijale baš za ove vrednosti, pa ih postavi **pre**
   koraka 2 i 3. Promena posle toga znači nove kredencijale.
 
-Ažuriraj i `appId` u Maestro flowovima (`.maestro/**/*.yaml`) na novi bundle id / package, a
+To su **produkcijske** vrednosti; dev i test varijanta dobijaju sufiks `.dev` i `.preview`
+(`docs/builds.md`). Za push je svaka varijanta zasebna aplikacija — Firebase i Apple je moraju
+znati pod njenim id-jem (koraci 2 i 3).
+
+Ažuriraj i `appId` u Maestro flowovima (`.maestro/**/*.yaml`) na novi id **sa `.dev`** (flowovi
+testiraju dev build), a
 kad menjaš `slug`, i šemu `exp+expo-mobile-ai-setup://` u `.maestro/shared/open-dev-server.yaml`
 (development build je izvodi iz slug-a: `exp+<slug>`).
 
@@ -116,9 +121,9 @@ i iste dve promenljive na expo.dev (za build-ove na Expo serverima), vidljivost 
 u sva tri okruženja:
 
 ```sh
-npx eas-cli@latest env:create --name EAS_PROJECT_ID --value <uuid> \
+npx eas-cli@latest env:set --name EAS_PROJECT_ID --value <uuid> \
   --environment development --environment preview --environment production --visibility plaintext
-npx eas-cli@latest env:create --name EXPO_OWNER --value <org> \
+npx eas-cli@latest env:set --name EXPO_OWNER --value <org> \
   --environment development --environment preview --environment production --visibility plaintext
 ```
 
@@ -128,8 +133,11 @@ Provera: `npx expo config --type public` mora da pokaže `extra.eas.projectId`.
 
 1. [Firebase Console](https://console.firebase.google.com) → novi projekat (ili postojeći
    firmin za ovog klijenta).
-2. **Add app → Android**, package name = `expo.android.package` iz koraka 0. Preuzmi
-   **`google-services.json`** i stavi ga u koren mobilnog projekta. `app.config.ts` ga sam
+2. **Add app → Android** tri puta, po jednom za svaku varijantu: package name =
+   `expo.android.package` iz koraka 0, pa isti sa `.dev`, pa sa `.preview`. Jedan Firebase
+   projekat drži sve tri. **Posle** dodavanja sve tri preuzmi **`google-services.json`** (sadrži
+   sve tri aplikacije — fajl preuzet ranije ne zna za ostale i taj build pada) i stavi ga u koren
+   mobilnog projekta. `app.config.ts` ga sam
    pronalazi. Sadrži samo javne identifikatore i sme da se commituje.
    - Ako ga ne commituješ: na expo.dev ga postavi kao **file** env promenljivu
      `GOOGLE_SERVICES_JSON` — `app.config.ts` je čita pre lokalnog fajla.
@@ -157,9 +165,12 @@ npx eas-cli@latest credentials
 #   → Set up a Push Key → generiši novi (ili izaberi postojeći ključ tima)
 ```
 
-Prvi `eas build` za iOS takođe nudi ovo („Setup Push Notifications for your project" → da). Plugin
-`expo-notifications` u `app.json` dodaje `aps-environment`; za produkcijske build-ove postavi
-njegovu opciju `"mode": "production"`.
+Prvi `eas build` za iOS takođe nudi ovo („Setup Push Notifications for your project" → da). Jedan
+APNs ključ važi za ceo tim, pa pokriva sve tri varijante; svaka varijanta (bundle id) samo dobija
+svoj provisioning profil sa uključenim push-om — prvi build svake to pita.
+
+`aps-environment` (Apple-ov sandbox ili produkcija) `app.config.ts` postavlja sam po varijanti:
+`development` → sandbox, `preview` i `production` → produkcija. Ne menjaj `mode` u `app.json`.
 
 Za fizički iPhone uređaj mora biti registrovan (`npx eas-cli@latest device:create`) pre development
 build-a.
@@ -174,7 +185,7 @@ npm run ios
 npm run android
 ```
 
-ili `npx eas-cli@latest build --profile development` za build na Expo serverima.
+ili `npm run build:dev` / `build:preview` za build na Expo serverima (`docs/builds.md`).
 
 ### 5. Backend
 

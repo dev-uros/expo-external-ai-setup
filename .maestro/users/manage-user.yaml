@@ -2,7 +2,7 @@
 # invite), resend the invite, edit it, make it an admin, switch it off and on again, and read
 # what was done in its audit trail. Every account gets a fresh email; the script afterwards
 # switches all of them off — there is no delete endpoint.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [users]
 onFlowComplete:
   - runScript: ../scripts/deactivate-maestro-users.js

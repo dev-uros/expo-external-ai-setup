@@ -1,6 +1,6 @@
 # The theme is chosen on the profile — system, light or dark, as on the web — applied at once and
 # said in words. Ends on "Sistemska" so the next flow starts as the device is.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [profile]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

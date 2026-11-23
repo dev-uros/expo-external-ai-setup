@@ -1,7 +1,7 @@
 # Any signed-in user can browse the accounts: everyone with their status, a search that works
 # without Serbian letters, a sentence when nothing matches, and the detail of one account.
 # Read-only, so nothing needs to be reset afterwards.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [users]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

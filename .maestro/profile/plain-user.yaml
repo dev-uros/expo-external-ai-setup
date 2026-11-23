@@ -1,6 +1,6 @@
 # A plain user may read their profile but not edit it — the API answers 403 for them, so the app
 # does not offer the button at all.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [profile]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

@@ -1,7 +1,7 @@
 # An admin edits their own profile: local validation, leaving with unsaved changes (back
 # dismisses the question, "Odbaci" leaves), a taken email (422 from the server), and a save that
 # comes back to the profile with the backend's message.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [profile]
 onFlowComplete:
   - runScript: ../scripts/reset-milica.js

@@ -1,5 +1,5 @@
 # Fills the form and submits it. Inputs: EMAIL, PASSWORD.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 ---
 - tapOn:
     id: 'login-email'

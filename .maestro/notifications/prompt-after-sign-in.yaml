@@ -1,7 +1,7 @@
 # The system asks for notifications right after signing in. Refusing is not the end: the profile
 # says notifications are off and offers the way back — on Android the app may ask again, on iOS
 # the system asks only once, so the button opens the settings app.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [notifications]
 ---
 - runFlow:

@@ -1,6 +1,6 @@
 # The home screen gathers the screens this person opens most, with how often, and forgets them
 # on request. A fresh install starts with none.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [home]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

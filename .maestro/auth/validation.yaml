@@ -1,5 +1,5 @@
 # Local validation, before anything is sent: empty form, then a malformed email.
-appId: com.example.backoffice
+appId: com.example.backoffice.dev
 tags: [auth]
 ---
 - runFlow: ../shared/launch-signed-out.yaml

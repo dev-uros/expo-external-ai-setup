@@ -23,11 +23,11 @@ prijave grešaka sa imenima korisnika (id-jevima) i pristup treba da ostane kad 
 
 ## Ukratko: šta je minimum
 
-| Šta                            | Gde                                          | Zašto                                              |
-| ------------------------------ | -------------------------------------------- | -------------------------------------------------- |
-| `EXPO_PUBLIC_SENTRY_DSN`       | `.env.local` + EAS (plaintext)               | bez njega aplikacija ne šalje ništa                |
-| `SENTRY_ORG`, `SENTRY_PROJECT` | `.env.local` + EAS (plaintext)               | bez njih nema plugina, pa ni upload-a source map-a |
-| `SENTRY_AUTH_TOKEN`            | **samo** EAS (secret) ili `export` u shell-u | bez njega release build preskače upload (ne puca)  |
+| Šta                            | Gde                                          | Zašto                                               |
+| ------------------------------ | -------------------------------------------- | --------------------------------------------------- |
+| `EXPO_PUBLIC_SENTRY_DSN`       | `.env.local` + EAS (plaintext)               | bez njega aplikacija ne šalje ništa                 |
+| `SENTRY_ORG`, `SENTRY_PROJECT` | `.env.local` + EAS (plaintext)               | bez njih release build preskače upload source map-a |
+| `SENTRY_AUTH_TOKEN`            | **samo** EAS (secret) ili `export` u shell-u | bez njega release build preskače upload (ne puca)   |
 
 Bez source map-a greške i dalje stižu, ali sa minifikovanim stack trace-om (`index.android.bundle:1:48213`)
 — upotrebljivo samo za poruku, ne za liniju koda.
@@ -94,23 +94,24 @@ Iz foldera mobilne aplikacije (projekat mora već biti povezan sa EAS-om, `eas i
 `push-notifications.md`, korak 0):
 
 ```sh
-npx eas-cli@latest env:create --name EXPO_PUBLIC_SENTRY_DSN --value "https://..." \
+npx eas-cli@latest env:set --name EXPO_PUBLIC_SENTRY_DSN --value "https://..." \
   --visibility plaintext --environment production --environment preview
-npx eas-cli@latest env:create --name SENTRY_ORG --value ime-organizacije \
+npx eas-cli@latest env:set --name SENTRY_ORG --value ime-organizacije \
   --visibility plaintext --environment production --environment preview
-npx eas-cli@latest env:create --name SENTRY_PROJECT --value ime-projekta \
+npx eas-cli@latest env:set --name SENTRY_PROJECT --value ime-projekta \
   --visibility plaintext --environment production --environment preview
-npx eas-cli@latest env:create --name SENTRY_AUTH_TOKEN --value "sntrys_..." \
+npx eas-cli@latest env:set --name SENTRY_AUTH_TOKEN --value "sntrys_..." \
   --visibility secret --environment production --environment preview
 ```
 
-Za preview build-ove dodaj i `EXPO_PUBLIC_SENTRY_ENVIRONMENT=preview` (samo `--environment
-preview`), da se u Sentry-ju greške testera ne mešaju sa produkcijom. Bez nje je `production`.
+`environment` u Sentry-ju je varijanta aplikacije (`development`, `preview`, `production` —
+`docs/builds.md`), pa se greške testera ne mešaju sa produkcijskim. Ne podešava se posebno.
 
 ### 5. Ponovo izgradi aplikaciju
 
-Sa `SENTRY_ORG` i `SENTRY_PROJECT` `app.config.ts` uključuje Sentry plugin, a promena plugina
-traži novi native projekat:
+Sentry plugin je uvek uključen, ali organizacija i projekat ulaze u native projekat tek pri
+`prebuild`-u, pa lokalno posle popunjavanja `.env.local` treba novi native projekat (EAS ga ionako
+pravi iz početka za svaki build):
 
 ```sh
 npx expo prebuild --clean
@@ -161,9 +162,9 @@ Skripta čita `SENTRY_ORG`, `SENTRY_PROJECT` i `SENTRY_AUTH_TOKEN` iz okruženja
 
 ## Kad ne radi
 
-| Simptom                                           | Uzrok                                                                               |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Ništa ne stiže iz `npm run ios` / `android`       | to su development build-ovi — namerno ne šalju                                      |
-| Ništa ne stiže ni iz release build-a              | `EXPO_PUBLIC_SENTRY_DSN` nije bio postavljen **pri build-u** (inline-uje se tada)   |
-| Stack trace minifikovan                           | nema `SENTRY_AUTH_TOKEN` pri build-u, ili posle `eas update` nije pušten upload     |
-| Build upozorava „Missing config for organization" | plugin je uključen bez `SENTRY_ORG` / `SENTRY_PROJECT` — proveri `.env.local` / EAS |
+| Simptom                                                  | Uzrok                                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Ništa ne stiže iz `npm run ios` / `android`              | to su development build-ovi — namerno ne šalju                                                |
+| Ništa ne stiže ni iz release build-a                     | `EXPO_PUBLIC_SENTRY_DSN` nije bio postavljen **pri build-u** (inline-uje se tada)             |
+| Stack trace minifikovan                                  | nema `SENTRY_AUTH_TOKEN` pri build-u, ili posle `eas update` nije pušten upload               |
+| Metro upozorava „Sentry native configuration is missing" | `ios/` / `android/` su napravljeni pre nego što je Sentry dodat — `npx expo prebuild --clean` |
