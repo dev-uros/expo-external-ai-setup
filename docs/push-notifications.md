@@ -84,14 +84,17 @@ još nije podešeno za ovu aplikaciju." — to je očekivano stanje template-a.
 
 ### 0. Identitet aplikacije
 
-U `app.json` zameni template vrednosti pravim:
+`expo.name` (ime ispod ikonice i u tekstovima dozvola) već je ime projekta — upisao ga je
+`new-project.sh`. U `app.json` zameni preostale template vrednosti pravim:
 
 - `expo.slug` — kako će se projekat zvati na expo.dev;
 - `expo.ios.bundleIdentifier` i `expo.android.package` — `com.example.backoffice` je samo
   placeholder. Firebase i Apple vezuju kredencijale baš za ove vrednosti, pa ih postavi **pre**
   koraka 2 i 3. Promena posle toga znači nove kredencijale.
 
-Ažuriraj i `appId` u Maestro flowovima (`.maestro/**/*.yaml`) na novi bundle id / package.
+Ažuriraj i `appId` u Maestro flowovima (`.maestro/**/*.yaml`) na novi bundle id / package, a
+kad menjaš `slug`, i šemu `exp+expo-mobile-ai-setup://` u `.maestro/shared/open-dev-server.yaml`
+(development build je izvodi iz slug-a: `exp+<slug>`).
 
 ### 1. EAS projekat → `EAS_PROJECT_ID`
 

@@ -18,6 +18,22 @@ cp .env.example .env.local    # EXPO_PUBLIC_API_URL=http://localhost:8000/api
 `localhost` works on the iOS simulator directly and on the Android emulator through
 `adb reverse tcp:8000 tcp:8000`, which `npm run android` sets up.
 
+### On a physical phone
+
+`localhost` on a phone is the phone itself, so the app finds neither the API nor Metro. Put the
+Mac's address on the local network into `.env.local` instead, and restart Metro — the value is
+inlined when the bundle is built:
+
+```sh
+ipconfig getifaddr en0                              # the Mac's LAN address, e.g. 192.168.1.23
+EXPO_PUBLIC_API_URL=http://192.168.1.23:8000/api    # in .env.local
+```
+
+The phone and the Mac must be on the same Wi-Fi, and the macOS firewall must let incoming
+connections reach Docker (port 8000) and Node (Metro, 8081). An Android phone on USB can use
+`adb reverse tcp:8000 tcp:8000` and keep `localhost` instead. The address changes with the
+network, so check it again when the app suddenly says the server is unreachable.
+
 ### Accounts
 
 Every seeded account uses the password `password`.

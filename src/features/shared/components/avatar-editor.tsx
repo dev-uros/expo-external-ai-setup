@@ -78,7 +78,7 @@ export function AvatarEditor({
       <ConfirmDialog
         visible={editor.dialog === 'cameraBlocked'}
         title="Pristup kameri nije dozvoljen"
-        message="Dozvolite Backoffice-u pristup kameri u podešavanjima telefona."
+        message="Dozvolite aplikaciji pristup kameri u podešavanjima telefona."
         confirmLabel="Otvori podešavanja"
         onConfirm={editor.openSettings}
         onCancel={editor.dismissDialog}
