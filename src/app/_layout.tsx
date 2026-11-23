@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
+import { showNotificationsInForeground } from '@/lib/notifications';
 import { queryClient } from '@/lib/query-client';
 import { applySavedTheme } from '@/features/appearance/stores/appearance';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
@@ -18,6 +19,7 @@ import { useSessionStore } from '@/features/shared/stores/session';
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 300, fade: true });
 installUnauthorizedHandler();
+showNotificationsInForeground();
 // Synchronous read, so the chosen theme is in place before the first frame.
 applySavedTheme();
 

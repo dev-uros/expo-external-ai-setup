@@ -111,5 +111,10 @@ test('a deep link that arrives at launch survives the session check', async () =
 
   expect(await screen.findByLabelText('Email: marko@firma.com')).toBeOnTheScreen();
   expect(screen).toHavePathname('/users/7');
-  expect(requestMock).toHaveBeenLastCalledWith('/users/7');
+  expect(requestMock).toHaveBeenCalledWith('/users/7');
+  // The signed-in app also records this phone for the session (internal_user_devices).
+  expect(requestMock).toHaveBeenCalledWith(
+    '/auth/device',
+    expect.objectContaining({ method: 'PUT' })
+  );
 });

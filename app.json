@@ -65,6 +65,12 @@
           "microphonePermission": false
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "color": "#1D4ED8"
+        }
+      ],
       "expo-sqlite"
     ],
     "scheme": "expo-mobile-ai-setup",

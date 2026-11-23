@@ -55,6 +55,10 @@ their versions match the SDK.
   for any screen that reads data.
 - **Profile** — own account, profile picture (camera or system photo picker, no media
   permission), editing for admins. The reference for any screen that writes.
+- **Notifications** — the phone is registered for the session at sign-in, the system asks for
+  permission right after the first sign-in, and the profile shows the state with a test push or a
+  way to ask again. Sending needs an Expo, Firebase and Apple account per project:
+  [`docs/push-notifications.md`](docs/push-notifications.md).
 - Light and dark mode, Figtree, native tabs, sheets, menus and dialogs on both platforms;
   refetch on returning to the app or the network; an error screen instead of a white one.
 

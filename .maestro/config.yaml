@@ -4,3 +4,4 @@ flows:
   - profile/*
   - users/*
   - home/*
+  - notifications/*

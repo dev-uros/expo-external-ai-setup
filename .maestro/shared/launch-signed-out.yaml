@@ -1,6 +1,10 @@
 # Starts the development build from nothing — no app data, no stored token — and points it at
 # the running Metro server (`npm start`). The query parameters skip the dev client's onboarding
 # menu and floating button, which would otherwise cover the app.
+#
+# Every permission is granted up front, so no system prompt interrupts a flow. Input
+# NOTIFICATIONS (`allow` by default) overrides the notification permission: `unset` lets the app's
+# own prompt after sign-in appear, which the notifications flows answer.
 appId: com.example.backoffice
 ---
 - runFlow:
@@ -13,6 +17,7 @@ appId: com.example.backoffice
     stopApp: true
     permissions:
       all: allow
+      notifications: ${NOTIFICATIONS || 'allow'}
 - runFlow: open-dev-server.yaml
 - extendedWaitUntil:
     visible: 'Prijavite se svojim poslovnim nalogom.'

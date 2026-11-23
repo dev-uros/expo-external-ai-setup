@@ -1,0 +1,63 @@
+# The system asks for notifications right after signing in. Refusing is not the end: the profile
+# says notifications are off and offers the way back — on Android the app may ask again, on iOS
+# the system asks only once, so the button opens the settings app.
+appId: com.example.backoffice
+tags: [notifications]
+---
+- runFlow:
+    file: ../shared/launch-signed-out.yaml
+    env:
+      NOTIFICATIONS: unset
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: ana.nikolic@fifthguild.com
+      PASSWORD: password
+# The system prompt, over the home screen. "Don't allow" on Android, "Don’t Allow" on iOS.
+- extendedWaitUntil:
+    visible: 'Don.t [Aa]llow'
+    timeout: 15000
+- tapOn: 'Don.t [Aa]llow'
+- extendedWaitUntil:
+    visible: 'Dobro došli, Ana.'
+    timeout: 15000
+- tapOn: 'Profil'
+- scrollUntilVisible:
+    element: 'Obaveštenja'
+    direction: DOWN
+
+# Android: the first refusal can still be asked again — the button brings the prompt back, and
+# allowing turns them on (sending itself is not set up in the template, so that is what it says).
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - extendedWaitUntil:
+          visible: 'Isključena na ovom uređaju.'
+          timeout: 15000
+      - tapOn: 'Uključi obaveštenja'
+      - extendedWaitUntil:
+          visible: 'Allow'
+          timeout: 15000
+      - tapOn: 'Allow'
+      - extendedWaitUntil:
+          visible: 'Dozvoljena, ali slanje obaveštenja još nije podešeno za ovu aplikaciju.'
+          timeout: 15000
+
+# iOS: one refusal is final for the system prompt; the way back is the settings app.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: 'Isključena. Uključite ih u podešavanjima telefona.'
+          timeout: 15000
+      - assertVisible: 'Otvori podešavanja'
+
+# A restart does not ask again on its own — from now on the profile's button does.
+- stopApp
+- runFlow: ../shared/open-dev-server.yaml
+- extendedWaitUntil:
+    visible: 'Dobro došli, Ana.'
+    timeout: 30000
+- assertNotVisible: 'Don.t [Aa]llow'

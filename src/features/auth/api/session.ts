@@ -1,4 +1,5 @@
 import { request } from '@/lib/http';
+import { devicePayload } from '@/features/shared/api/device';
 import { apiResponseSchema, messageOnlySchema } from '@/features/shared/schemas/api';
 import { authenticatedUserSchema, userSchema } from '@/features/shared/schemas/user';
 import type { Credentials } from '@/features/auth/schemas/credentials';
@@ -8,9 +9,19 @@ import type { Credentials } from '@/features/auth/schemas/credentials';
  * is part of the answer.
  */
 
-/** `POST /auth/login` — 401 when the pair is wrong, 403 when the account is switched off. */
+/**
+ * `POST /auth/login` — 401 when the pair is wrong, 403 when the account is switched off.
+ *
+ * Carries the phone too, so the backend records it against the session it hands back. Reading
+ * the handset cannot block a sign-in: without it the login goes ahead, and the next launch
+ * registers the phone through `PUT /auth/device`.
+ */
 export async function login(credentials: Credentials) {
-  const body = await request('/auth/login', { method: 'POST', body: credentials });
+  const device = await devicePayload().catch(() => undefined);
+  const body = await request('/auth/login', {
+    method: 'POST',
+    body: device === undefined ? credentials : { ...credentials, device },
+  });
   return apiResponseSchema(authenticatedUserSchema).parse(body);
 }
 

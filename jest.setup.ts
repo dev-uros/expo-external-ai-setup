@@ -32,3 +32,26 @@ jest.mock('@/lib/theme-transition', () => ({
   applyColorScheme: jest.fn(),
   crossFade: jest.fn(async (change: () => void) => change()),
 }));
+
+// The handset, fixed: expo-device and expo-application read native values Jest does not have.
+jest.mock('@/lib/device', () => ({
+  readDeviceInfo: jest.fn(async () => ({
+    id: 'test-device-id',
+    platform: 'ios',
+    name: 'iPhone 17 Pro',
+    osName: 'iOS',
+    manufacturer: 'Apple',
+    osVersion: '27.2',
+  })),
+}));
+
+// Push notifications: not configured (no EAS project), as in the template itself. A test that
+// needs them configured overrides these per test.
+jest.mock('@/lib/notifications', () => ({
+  pushProjectId: jest.fn(() => null),
+  pushConfigured: jest.fn(() => false),
+  showNotificationsInForeground: jest.fn(),
+  readPushPermission: jest.fn(async () => ({ granted: false, canAskAgain: true })),
+  requestPushPermission: jest.fn(async () => ({ granted: false, canAskAgain: true })),
+  readExpoPushToken: jest.fn(async () => null),
+}));

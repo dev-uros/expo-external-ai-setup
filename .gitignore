@@ -49,3 +49,8 @@ yarn-error.*
 # local native module build output
 modules/*/android/build/
 modules/*/android/.cxx/
+
+# Firebase service account keys (FCM V1) — uploaded to EAS, never committed.
+# google-services.json itself holds only public identifiers and may be committed.
+*firebase-adminsdk*.json
+service-account*.json

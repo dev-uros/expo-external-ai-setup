@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router/stack';
 
+import { usePushRegistration } from '@/features/notifications/hooks/use-push-registration';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
 import { useTrackVisits } from '@/features/shortcuts/hooks/use-track-visits';
 
@@ -18,6 +19,8 @@ export const unstable_settings = {
 export default function AppLayout() {
   // Every screen of the signed-in app counts towards the home screen's shortcuts.
   useTrackVisits();
+  // Records this phone for the session and, once allowed, its push token.
+  usePushRegistration();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
