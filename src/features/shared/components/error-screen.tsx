@@ -1,8 +1,10 @@
 import type { ErrorBoundaryProps } from 'expo-router';
 import { usePalette } from '@/features/shared/hooks/use-palette';
+import { useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ScreenMessage } from '@/features/shared/components/screen-message';
+import { reportError } from '@/lib/sentry';
 
 /**
  * What the user sees instead of a blank screen when a screen crashes while rendering. The words
@@ -10,9 +12,16 @@ import { ScreenMessage } from '@/features/shared/components/screen-message';
  *
  * Self-contained on purpose — no theme, query client or session — because the root boundary
  * renders it outside every provider.
+ *
+ * The boundary catches the error, so Sentry's global handler never sees it — it is reported here.
  */
 export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
   const palette = usePalette();
+
+  useEffect(() => {
+    reportError(error);
+  }, [error]);
+
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"

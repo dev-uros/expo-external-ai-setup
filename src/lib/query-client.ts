@@ -1,8 +1,29 @@
 import NetInfo from '@react-native-community/netinfo';
-import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  focusManager,
+  onlineManager,
+} from '@tanstack/react-query';
 import { AppState } from 'react-native';
 
 import { ApiError } from '@/lib/http';
+import { reportError } from '@/lib/sentry';
+
+/**
+ * Which failed calls are worth an error report. A 4xx is the API answering (a wrong password, a
+ * 403, a 422) and status 0 is the phone's network — neither is a bug. A 5xx is, and so is
+ * anything that is not an `ApiError` at all: a response the Zod schema rejected, or a throw in
+ * our own code. The request id leads from the report to the backend's log lines.
+ */
+export function reportQueryError(error: unknown): void {
+  if (error instanceof ApiError) {
+    if (error.status >= 500) reportError(error, { request_id: error.requestId });
+    return;
+  }
+  reportError(error);
+}
 
 /**
  * The single QueryClient. Global defaults live here; tune individual queries at the call site.
@@ -11,6 +32,9 @@ import { ApiError } from '@/lib/http';
  * network failures and 5xx are retried.
  */
 export const queryClient = new QueryClient({
+  // Once per call, after the last retry.
+  queryCache: new QueryCache({ onError: reportQueryError }),
+  mutationCache: new MutationCache({ onError: reportQueryError }),
   defaultOptions: {
     queries: {
       staleTime: 30_000,

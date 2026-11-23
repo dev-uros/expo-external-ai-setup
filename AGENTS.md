@@ -34,6 +34,7 @@ Expo ships breaking changes every SDK release. APIs you remember are likely rena
 | `prettier`                      | 3                   | formatting                                  |
 | `jest` + `jest-expo`            | 30 / 58             | unit and component tests                    |
 | `@testing-library/react-native` | 14                  | component queries and user events           |
+| `@sentry/react-native`          | 8                   | crash and error reports (release builds)    |
 | Maestro CLI                     | 2                   | end-to-end flows on simulator / emulator    |
 | Node                            | `^22.13 \|\| ^24.3` | runtime for the CLI                         |
 
@@ -123,6 +124,7 @@ src/
     storage.ts              small non-secret device values over expo-sqlite/kv-store (sync reads)
     zustand.ts              `create` (reset on sign-out) and `createDeviceStore` (kept)
     theme-transition.ts     our theme-transition native module, wrapped like any native dependency
+    sentry.ts               error reports: init, root wrapper, reportError, the signed-in user's id
 modules/                    our own native code — local Expo modules (Swift + Kotlin, Expo Modules API),
                             scaffolded with `npx create-expo-module --local`; app code reaches them via lib/
 ```
@@ -142,6 +144,7 @@ Create directories on demand; do not scatter equivalents elsewhere.
     New features mirror it — the `new-feature` skill walks through the steps.
 - **Client-only features:** `shortcuts` (per-account history in a `create` store, persisted per user id, counted from `usePathname` in `(app)/_layout.tsx`) and `appearance` (theme in a `createDeviceStore`, applied with `Appearance.setColorScheme` before the first frame). Device preferences survive sign-out; anything about a person must not.
 - **This phone and push (`notifications`)** — internal users only. Login sends `device` (`features/shared/api/device.ts`, built from `lib/device.ts`); the signed-in layout runs `usePushRegistration`, which `PUT /auth/device`s the phone on every launch with the push token three-state (omitted = keep, `null` = off, string = on), and asks for permission automatically once per install (`shouldAskAutomatically`). Asking does not depend on configuration; getting a token needs `EAS_PROJECT_ID`, read by `app.config.ts` — never write the id or an `owner` into `app.json`, the template stays bound to no account. Setting a project up: `docs/push-notifications.md`. Logout needs no device call — the backend unbinds the phone when the token goes.
+- **Error reports (Sentry)** go through `lib/sentry.ts`, never the bare package. Uncaught JS errors and native crashes are caught by the SDK; `ErrorScreen` reports what a boundary caught; `reportQueryError` in `lib/query-client.ts` reports failed calls that are bugs — a 5xx (tagged `request_id`) or anything not an `ApiError` (a Zod mismatch, our own throw) — and never a 4xx or a network failure. A new `catch` that swallows a bug calls `reportError`; one that handles an expected answer does not. Only the user's id is attached, never e-mail or other personal data. Nothing is sent from a development build or without `EXPO_PUBLIC_SENTRY_DSN`; the DSN, `SENTRY_ORG` and `SENTRY_PROJECT` come from the environment through `app.config.ts` — never write them into `app.json`, and `SENTRY_AUTH_TOKEN` into no file at all. Setting a project up: `docs/sentry.md`.
 - A query-key root that more than one feature touches (`users`: profile edits change a row in it) lives in `features/shared/query/keys.ts`; the owning feature builds its keys on it, the other invalidates it.
 - `(app)/_layout.tsx` is a Stack holding `(tabs)` and the modals. Declare a modal there (`presentation: 'modal'`), not inside a tab's stack — inside a tab it opens within the tab and the tab bar stays visible.
 - `NativeTabs` import from `expo-router/native-tabs`. The `expo-router/unstable-native-tabs` path some docs and skills still show is deprecated in SDK 58.

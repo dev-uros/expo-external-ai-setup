@@ -55,3 +55,11 @@ jest.mock('@/lib/notifications', () => ({
   requestPushPermission: jest.fn(async () => ({ granted: false, canAskAgain: true })),
   readExpoPushToken: jest.fn(async () => null),
 }));
+
+// Sentry's SDK is native code and ESM Jest does not load; tests check what is reported, not how.
+jest.mock('@/lib/sentry', () => ({
+  initSentry: jest.fn(),
+  wrapRoot: <T>(root: T) => root,
+  reportError: jest.fn(),
+  setReportedUser: jest.fn(),
+}));

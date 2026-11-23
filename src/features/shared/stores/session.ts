@@ -1,3 +1,4 @@
+import { setReportedUser } from '@/lib/sentry';
 import { create } from '@/lib/zustand';
 import type { User } from '@/features/shared/schemas/user';
 
@@ -22,7 +23,13 @@ interface SessionState {
 export const useSessionStore = create<SessionState>((set) => ({
   status: 'loading',
   user: null,
-  setSignedIn: (user) => set({ status: 'signedIn', user }),
-  setSignedOut: () => set({ status: 'signedOut', user: null }),
+  setSignedIn: (user) => {
+    setReportedUser(user.id);
+    set({ status: 'signedIn', user });
+  },
+  setSignedOut: () => {
+    setReportedUser(null);
+    set({ status: 'signedOut', user: null });
+  },
   replaceUser: (user) => set({ user }),
 }));

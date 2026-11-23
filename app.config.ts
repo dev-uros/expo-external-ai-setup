@@ -14,6 +14,10 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * - `EXPO_OWNER`: the Expo account or organization that owns the project.
  * - `GOOGLE_SERVICES_JSON`: path to `google-services.json` (an EAS file variable on the
  *   builders); locally a `google-services.json` in the project root is picked up on its own.
+ * - `SENTRY_ORG`, `SENTRY_PROJECT`: the Sentry project release builds upload source maps and
+ *   debug symbols to. Without both the Sentry plugin is left out — nothing to upload to.
+ *   `SENTRY_AUTH_TOKEN` (an EAS secret) allows the upload; without it a release build skips the
+ *   upload instead of failing. See docs/sentry.md.
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
   const projectId = process.env.EAS_PROJECT_ID || undefined;
@@ -22,9 +26,25 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const googleServicesFile =
     process.env.GOOGLE_SERVICES_JSON ||
     (existsSync(localGoogleServices) ? './google-services.json' : undefined);
+  const sentryOrg = process.env.SENTRY_ORG || undefined;
+  const sentryProject = process.env.SENTRY_PROJECT || undefined;
+  const sentryPlugin: NonNullable<ExpoConfig['plugins']> =
+    sentryOrg && sentryProject
+      ? [
+          [
+            '@sentry/react-native',
+            {
+              organization: sentryOrg,
+              project: sentryProject,
+              disableAutoUpload: !process.env.SENTRY_AUTH_TOKEN,
+            },
+          ],
+        ]
+      : [];
 
   return {
     ...config,
+    plugins: [...(config.plugins ?? []), ...sentryPlugin],
     name: config.name ?? 'Backoffice',
     slug: config.slug ?? 'expo-mobile-ai-setup',
     ...(owner ? { owner } : {}),

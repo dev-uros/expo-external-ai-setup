@@ -9,12 +9,15 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { showNotificationsInForeground } from '@/lib/notifications';
 import { queryClient } from '@/lib/query-client';
+import { initSentry, wrapRoot } from '@/lib/sentry';
 import { applySavedTheme } from '@/features/appearance/stores/appearance';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
 import { ToastHost } from '@/features/shared/components/toast-host';
 import { installUnauthorizedHandler, restoreSession } from '@/features/auth/session';
 import { useSessionStore } from '@/features/shared/stores/session';
 
+// First, so an error in anything below is already reported.
+initSentry();
 // Called at module scope so it runs before the splash screen can hide on its own.
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 300, fade: true });
@@ -30,7 +33,9 @@ applySavedTheme();
  */
 export const ErrorBoundary = ErrorScreen;
 
-export default function RootLayout() {
+export default wrapRoot(RootLayout);
+
+function RootLayout() {
   // Navigators (headers, screen backgrounds) take their colors from this theme, not from the
   // system — without it every stack stays light in dark mode.
   const colorScheme = useColorScheme();

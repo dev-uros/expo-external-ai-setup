@@ -34,7 +34,19 @@ connections reach Docker (port 8000) and Node (Metro, 8081). An Android phone on
 `adb reverse tcp:8000 tcp:8000` and keep `localhost` instead. The address changes with the
 network, so check it again when the app suddenly says the server is unreachable.
 
-### Accounts
+### Accounts each project needs
+
+The template is bound to no account. Everything runs locally without them; these are set up once
+per project, under the client's or the company's organization — never a personal account:
+
+| Account                             | For                                   | Without it                               | Setup                                                      |
+| ----------------------------------- | ------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| Expo (organization on expo.dev)     | EAS builds, push tokens               | no push, no EAS builds                   | [`docs/push-notifications.md`](docs/push-notifications.md) |
+| Firebase project (free)             | push on Android                       | Android gets no push                     | [`docs/push-notifications.md`](docs/push-notifications.md) |
+| Apple Developer (paid)              | push on iOS, TestFlight, App Store    | iOS gets no push, no distribution        | [`docs/push-notifications.md`](docs/push-notifications.md) |
+| Sentry (free plan: 5k errors/month) | crash and error reports from releases | the app works; nobody sees users' errors | [`docs/sentry.md`](docs/sentry.md)                         |
+
+### Seeded sign-in accounts
 
 Every seeded account uses the password `password`.
 
@@ -77,6 +89,9 @@ their versions match the SDK.
   [`docs/push-notifications.md`](docs/push-notifications.md).
 - Light and dark mode, Figtree, native tabs, sheets, menus and dialogs on both platforms;
   refetch on returning to the app or the network; an error screen instead of a white one.
+- **Crash reports** — Sentry, from release builds only: crashes, screens that fail to render,
+  5xx answers (with the request id) and responses the schemas reject. Silent until a project
+  has its own Sentry account: [`docs/sentry.md`](docs/sentry.md).
 
 ## Tests
 
