@@ -1,3 +1,4 @@
+import { signOutOfGoogle } from '@/lib/google-sign-in';
 import { ApiError, setAuthToken, setUnauthorizedHandler } from '@/lib/http';
 import { queryClient } from '@/lib/query-client';
 import { deleteToken, readToken, writeToken } from '@/lib/secure-store';
@@ -31,7 +32,11 @@ export async function startSession(token: string, user: User): Promise<void> {
  */
 export async function endSession({ keepToken = false } = {}): Promise<void> {
   setAuthToken(null);
-  if (!keepToken) await deleteToken();
+  if (!keepToken) {
+    await deleteToken();
+    // So the next person on this phone is asked which Google account, not signed in as this one.
+    await signOutOfGoogle();
+  }
   queryClient.removeQueries({ predicate: (query) => query.meta?.keepOnSignOut !== true });
   queryClient.getMutationCache().clear();
   resetAllStores();
@@ -41,7 +46,7 @@ export async function endSession({ keepToken = false } = {}): Promise<void> {
 /**
  * Turns a stored token back into a session, while the splash screen is still up.
  *
- * No token → signed out. A token the API rejects (401, or 403 for a switched-off account) is
+ * No token → signed out. A token the API rejects (401, or 403 for a blocked account) is
  * deleted. Any other failure — no connection, server down — also lands on the login screen,
  * but keeps the token: being offline at launch is not a reason to forget a valid session, and
  * the next launch tries again.
@@ -68,4 +73,10 @@ export function installUnauthorizedHandler(): void {
   setUnauthorizedHandler(() => {
     if (useSessionStore.getState().status === 'signedIn') void endSession();
   });
+}
+
+/** Reads the account again (pull to refresh) — a name changed on another phone shows up here. */
+export async function refreshAccount(): Promise<void> {
+  const { data } = await me();
+  useSessionStore.getState().replaceUser(data);
 }

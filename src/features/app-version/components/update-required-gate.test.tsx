@@ -59,14 +59,14 @@ test('an app older than the minimum shows only "update required", with a way to 
   expect(openURL).toHaveBeenCalledWith('https://apps.apple.com/app/id123');
 });
 
-test('without a store link it says whom to ask, and offers no button', async () => {
+test('without a store link it says the update is not out yet, and offers no button', async () => {
   fetchPolicy.mockResolvedValue(policy('1.2.0'));
 
   await renderGate();
 
   expect(
     await screen.findByText(
-      'Verzija 1.0.0 se više ne može koristiti. Obratite se administratoru za najnoviju verziju.'
+      'Verzija 1.0.0 se više ne može koristiti. Najnovija verzija još nije dostupna u prodavnici.'
     )
   ).toBeOnTheScreen();
   expect(screen.queryByTestId('update-required-action')).not.toBeOnTheScreen();

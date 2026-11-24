@@ -5,27 +5,26 @@ import type { AvatarAsset } from '@/features/shared/schemas/avatar';
 import { apiResponseSchema } from '@/features/shared/schemas/api';
 import { userSchema } from '@/features/shared/schemas/user';
 
-/**
- * Setting and removing one's own profile picture — the one write a plain user may make, and
- * only on their own account (somebody else's is a 403).
- */
+/** The picked file as a multipart part: expo-file-system's File is a Blob expo/fetch streams. */
+export function avatarPart(asset: AvatarAsset): Blob {
+  return new File(asset.uri) as unknown as Blob;
+}
 
 /**
- * `POST /users/{id}/avatar` — `multipart/form-data`, field `avatar`. The picked file is sent as
- * it is: the backend crops it to a square 512x512 WebP under a fresh random name, so the
- * returned `avatar_url` is the only correct one and the old file is already gone.
+ * `POST /mobile/v1/me/avatar` — `multipart/form-data`, field `avatar`. The backend crops it to a
+ * square 512x512 WebP under a fresh random name, so the returned `avatar_url` is the only
+ * correct one and the old file is already gone.
  */
-export async function uploadAvatar(id: number, asset: AvatarAsset) {
+export async function uploadAvatar(asset: AvatarAsset) {
   const body = new FormData();
-  // expo-file-system's File is a Blob that expo/fetch streams from disk.
-  body.append('avatar', new File(asset.uri) as unknown as Blob);
+  body.append('avatar', avatarPart(asset));
 
-  const response = await request(`/users/${id}/avatar`, { method: 'POST', body });
+  const response = await request('/mobile/v1/me/avatar', { method: 'POST', body });
   return apiResponseSchema(userSchema).parse(response);
 }
 
-/** `DELETE /users/{id}/avatar` — removing one from an account that has none is also a 200. */
-export async function removeAvatar(id: number) {
-  const response = await request(`/users/${id}/avatar`, { method: 'DELETE' });
+/** `DELETE /mobile/v1/me/avatar` — removing one the account does not have is also a 200. */
+export async function removeAvatar() {
+  const response = await request('/mobile/v1/me/avatar', { method: 'DELETE' });
   return apiResponseSchema(userSchema).parse(response);
 }

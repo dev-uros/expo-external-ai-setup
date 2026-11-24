@@ -1,0 +1,155 @@
+{
+  "common": {
+    "cancel": "Otkaži",
+    "retry": "Pokušaj ponovo",
+    "open_settings": "Otvori podešavanja",
+    "please_wait": "Sačekajte…",
+    "save": "Sačuvaj",
+    "saving": "Čuvanje…",
+    "tap_to_dismiss": "Dodirnite da zatvorite",
+    "logo": "Logo"
+  },
+  "tabs": {
+    "home": "Početna",
+    "settings": "Podešavanja"
+  },
+  "errors": {
+    "unreachable": "Server trenutno nije dostupan. Pokušajte ponovo.",
+    "generic": "Došlo je do greške.",
+    "unexpected": "Došlo je do neočekivane greške. Pokušajte ponovo.",
+    "screen_title": "Nešto nije u redu",
+    "screen_message": "Došlo je do neočekivane greške. Pokušajte ponovo, a ako se ponovi, javite nam."
+  },
+  "validation": {
+    "email_required": "Unesite email adresu.",
+    "email_invalid": "Email adresa nije ispravna.",
+    "username_short": "Korisničko ime mora imati najmanje 3 znaka.",
+    "username_long": "Korisničko ime sme imati najviše 30 znakova.",
+    "username_format": "Korisničko ime sme da sadrži samo mala slova, brojeve, tačku i donju crtu.",
+    "name_long": "Najviše 100 znakova."
+  },
+  "auth": {
+    "welcome": {
+      "title": "Dobro došli",
+      "subtitle": "Unesite email adresu i poslaćemo vam kod za prijavu.",
+      "continue": "Nastavi",
+      "or": "ili"
+    },
+    "fields": {
+      "email": "Email",
+      "email_placeholder": "ime@primer.com",
+      "username": "Korisničko ime",
+      "first_name": "Ime (opciono)",
+      "last_name": "Prezime (opciono)",
+      "display_personal_name": "Prikaži ime umesto korisničkog imena"
+    },
+    "code": {
+      "title": "Kod za prijavu",
+      "sent_to": "Poslali smo šestocifreni kod na",
+      "field": "Kod iz email poruke",
+      "checking": "Proveravamo kod…",
+      "resend": "Pošalji kod ponovo",
+      "resend_in_one": "Novi kod za {{count}} sekundu",
+      "resend_in_few": "Novi kod za {{count}} sekunde",
+      "resend_in_other": "Novi kod za {{count}} sekundi",
+      "change_email": "Promeni email adresu"
+    },
+    "register": {
+      "title": "Novi nalog",
+      "avatar_hint": "Profilna slika (opciono)",
+      "send_code": "Pošalji kod",
+      "create": "Napravi nalog"
+    },
+    "sign_out": {
+      "button": "Odjavi se",
+      "pending": "Odjavljivanje…",
+      "title": "Odjava",
+      "message": "Da li ste sigurni da želite da se odjavite?"
+    }
+  },
+  "home": {
+    "greeting": "Ćao, {{name}}",
+    "greeting_anonymous": "Ćao",
+    "placeholder": "Ovde ide sadržaj aplikacije."
+  },
+  "account": {
+    "edit": {
+      "title": "Izmena profila",
+      "discard_title": "Odbaciti izmene?",
+      "discard_message": "Izmene koje niste sačuvali biće izgubljene.",
+      "discard": "Odbaci",
+      "keep_editing": "Nastavi izmenu"
+    },
+    "about": {
+      "title": "O aplikaciji",
+      "privacy": "Politika privatnosti",
+      "version": "Verzija {{version}} ({{build}})"
+    },
+    "delete": {
+      "button": "Obriši nalog",
+      "pending": "Brisanje…",
+      "title": "Brisanje naloga",
+      "message": "Nalog i svi lični podaci biće trajno obrisani i bićete odjavljeni sa svih uređaja. Ovo se ne može poništiti.",
+      "confirm": "Obriši zauvek"
+    }
+  },
+  "language": {
+    "title": "Jezik",
+    "names": {
+      "sr": "Srpski",
+      "en": "English"
+    }
+  },
+  "appearance": {
+    "title": "Izgled",
+    "theme_label": "Tema",
+    "theme": {
+      "system": "Sistemska",
+      "light": "Svetla",
+      "dark": "Tamna"
+    },
+    "now_light": "Trenutno je uključena svetla tema.",
+    "now_dark": "Trenutno je uključena tamna tema."
+  },
+  "notifications": {
+    "title": "Obaveštenja",
+    "enable": "Uključi obaveštenja",
+    "enabling": "Uključivanje…",
+    "send_test": "Pošalji probno obaveštenje",
+    "sending": "Slanje…",
+    "state": {
+      "loading": "Učitavanje…",
+      "error": "Podaci o uređaju trenutno nisu dostupni.",
+      "enabled": "Uključena na ovom uređaju.",
+      "unconfigured": "Dozvoljena, ali slanje obaveštenja još nije podešeno za ovu aplikaciju.",
+      "unregistered": "Dozvoljena, ali uređaj još nije prijavljen za obaveštenja.",
+      "disabled": "Isključena na ovom uređaju.",
+      "blocked": "Isključena. Uključite ih u podešavanjima telefona."
+    }
+  },
+  "avatar": {
+    "menu_title": "Profilna slika",
+    "take_photo": "Fotografiši",
+    "choose": "Izaberi iz galerije",
+    "remove": "Ukloni sliku",
+    "change": "Promeni profilnu sliku",
+    "remove_title": "Ukloniti profilnu sliku?",
+    "remove_message": "Umesto slike biće prikazano početno slovo vašeg imena.",
+    "remove_confirm": "Ukloni",
+    "camera_blocked_title": "Pristup kameri nije dozvoljen",
+    "camera_blocked_message": "Dozvolite aplikaciji pristup kameri u podešavanjima telefona.",
+    "open_settings": "Otvori podešavanja",
+    "too_small": "Slika mora biti najmanje 64x64 piksela.",
+    "wrong_type": "Dozvoljeni su JPEG, PNG, WebP i GIF.",
+    "too_large": "Slika ne sme biti veća od 5 MB.",
+    "unusable": "Ova slika se ne može koristiti."
+  },
+  "update_required": {
+    "title": "Potrebno je ažuriranje",
+    "version": "Verzija {{version}} se više ne može koristiti.",
+    "this_version": "Ova verzija se više ne može koristiti.",
+    "install": "Instalirajte najnoviju verziju da biste nastavili.",
+    "no_store": "Najnovija verzija još nije dostupna u prodavnici.",
+    "update": "Ažuriraj"
+  }
+}

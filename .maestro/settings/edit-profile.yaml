@@ -1,0 +1,79 @@
+# The profile form (Settings → pencil): a first name and "show my name" change how the home screen
+# greets. Leaving with unsaved changes asks first. Ends with no first name and the name hidden, as
+# the demo account begins — the discard check types a name no run ever saves, so the form is
+# changed whatever a run that died half-way left behind.
+appId: com.example.customers.dev
+tags: [settings]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: maestro.profile@example.com
+- extendedWaitUntil:
+    visible: 'Ćao, .*'
+    timeout: 20000
+- tapOn: 'Podešavanja'
+- tapOn: 'Izmena profila'
+- extendedWaitUntil:
+    visible: 'Izmena profila'
+    timeout: 10000
+
+# Unsaved changes: leaving asks first; dismissing the question keeps the form — the system back
+# button on Android, the alert's cancel button on iOS (as in the internal app's flow).
+- tapOn:
+    id: 'profile-first-name'
+- eraseText: 100
+- inputText: 'Privremeno'
+- hideKeyboard
+- tapOn: 'Otkaži'
+- assertVisible: 'Odbaciti izmene?'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Nastavi izmenu'
+- assertNotVisible: 'Odbaciti izmene?'
+- assertVisible: 'Privremeno'
+
+# The name, shown instead of the username.
+- tapOn:
+    id: 'profile-first-name'
+- eraseText: 100
+- inputText: 'Maestro'
+- hideKeyboard
+- runFlow:
+    file: ../shared/toggle-switch.yaml
+    env:
+      LABEL: 'Prikaži ime umesto korisničkog imena'
+      ID: 'profile-display-name'
+- tapOn: 'Sačuvaj'
+- extendedWaitUntil:
+    visible: 'Profil je sačuvan.'
+    timeout: 15000
+- tapOn: 'Početna'
+- assertVisible: 'Ćao, Maestro'
+
+# Back as it began: no first name, the username shown.
+- tapOn: 'Podešavanja'
+- tapOn: 'Izmena profila'
+- tapOn:
+    id: 'profile-first-name'
+- eraseText: 100
+- hideKeyboard
+- runFlow:
+    file: ../shared/toggle-switch.yaml
+    env:
+      LABEL: 'Prikaži ime umesto korisničkog imena'
+      ID: 'profile-display-name'
+- tapOn: 'Sačuvaj'
+- extendedWaitUntil:
+    visible: 'Profil je sačuvan.'
+    timeout: 15000
+- tapOn: 'Početna'
+- assertVisible: 'Ćao, maestro.profile_demo'

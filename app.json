@@ -1,14 +1,17 @@
 {
   "expo": {
-    "name": "Backoffice",
-    "slug": "expo-mobile-ai-setup",
+    "name": "Customers",
+    "slug": "expo-external-ai-setup",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.backoffice"
+      "bundleIdentifier": "com.example.customers",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.example.backoffice",
+      "package": "com.example.customers",
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -60,8 +63,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Backoffice koristi kameru da biste fotografisali profilnu sliku.",
-          "photosPermission": "Backoffice pristupa izabranoj fotografiji da biste je postavili kao profilnu sliku.",
+          "cameraPermission": "Customers koristi kameru da biste fotografisali profilnu sliku.",
+          "photosPermission": "Customers pristupa izabranoj fotografiji da biste je postavili kao profilnu sliku.",
           "microphonePermission": false
         }
       ],
@@ -73,10 +76,14 @@
       ],
       "expo-sqlite"
     ],
-    "scheme": "expo-mobile-ai-setup",
+    "scheme": "expo-external-ai-setup",
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "locales": {
+      "sr": "./src/i18n/native/sr.json",
+      "en": "./src/i18n/native/en.json"
     }
   }
 }

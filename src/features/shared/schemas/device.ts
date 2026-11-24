@@ -1,8 +1,8 @@
 import * as z from 'zod';
 
 /**
- * The phone this session is on, as `GET` / `PUT /auth/device` return it. Internal users only —
- * the row lives in `internal_user_devices`, keyed on the account and the phone's own id.
+ * The phone this session is on, as `GET` / `PUT /mobile/v1/device` return it — a row in
+ * `mobile_user_devices`, keyed on the account and the phone's own id.
  */
 export const deviceSchema = z.object({
   id: z.number().int(),
@@ -14,9 +14,10 @@ export const deviceSchema = z.object({
   os_version: z.string().nullable(),
   /** The push token itself is never sent back; whether one is stored is. */
   push_notifications_enabled: z.boolean(),
+  /** Whether somebody is signed in on this phone right now. */
+  signed_in: z.boolean(),
   last_seen_at: z.iso.datetime({ offset: true }),
   created_at: z.iso.datetime({ offset: true }),
-  updated_at: z.iso.datetime({ offset: true }),
 });
 
 export type Device = z.infer<typeof deviceSchema>;

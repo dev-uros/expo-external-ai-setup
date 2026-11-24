@@ -1,0 +1,35 @@
+# A wrong code is refused in the server's words, the digits are cleared for the next try, and
+# "send again" waits for its countdown (30 s, MobileOtpCode::RESEND_AFTER_SECONDS). Once it runs
+# out, a new code is asked for — said in a toast, the countdown starts again — and the right code
+# still works afterwards. The demo account takes the fixed code every time, so nothing is mailed.
+appId: com.example.customers.dev
+tags: [auth]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: maestro.code@example.com
+      CODE: '000000'
+- extendedWaitUntil:
+    visible: 'Kod nije ispravan ili je istekao. Zatražite novi.'
+    timeout: 15000
+- assertVisible: 'Novi kod za .*'
+
+# Send again, once the countdown has run out. No hideKeyboard: the screen is short enough to keep
+# the button above the keyboard, and on Android it would be a back press if the keyboard is down.
+- extendedWaitUntil:
+    visible: 'Pošalji kod ponovo'
+    timeout: 45000
+- tapOn: 'Pošalji kod ponovo'
+- extendedWaitUntil:
+    visible: 'Poslali smo kod na vašu email adresu.'
+    timeout: 15000
+- assertVisible: 'Novi kod za .*'
+
+- tapOn:
+    id: 'code-input'
+- inputText: '424242'
+- extendedWaitUntil:
+    visible: 'Ćao, maestro.code_demo'
+    timeout: 20000

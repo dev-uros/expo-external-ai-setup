@@ -22,20 +22,20 @@ export async function devicePayload(): Promise<DevicePayload> {
   };
 }
 
-/** `GET /auth/device` — 404 when the session registered no phone. */
+/** `GET /mobile/v1/device` — 404 when the session registered no phone. */
 export async function currentDevice() {
-  const body = await request('/auth/device');
+  const body = await request('/mobile/v1/device');
   return apiResponseSchema(deviceSchema).parse(body);
 }
 
 /**
- * `PUT /auth/device` — records this phone for the session, and refreshes `last_seen_at`.
+ * `PUT /mobile/v1/device` — records this phone for the session, and refreshes `last_seen_at`.
  *
  * `pushToken` is three-state, like the API's field: `undefined` leaves the stored token alone,
  * `null` switches notifications off, a string switches them on.
  */
 export async function registerDevice(pushToken?: string | null) {
-  const body = await request('/auth/device', {
+  const body = await request('/mobile/v1/device', {
     method: 'PUT',
     body: {
       ...(await devicePayload()),
@@ -45,8 +45,8 @@ export async function registerDevice(pushToken?: string | null) {
   return apiResponseSchema(deviceSchema).parse(body);
 }
 
-/** `POST /auth/device/test-push` — 409 when notifications are off on this phone. */
+/** `POST /mobile/v1/device/test-push` — 409 when notifications are off on this phone. */
 export async function sendTestPush() {
-  const body = await request('/auth/device/test-push', { method: 'POST' });
+  const body = await request('/mobile/v1/device/test-push', { method: 'POST' });
   return messageOnlySchema.parse(body);
 }

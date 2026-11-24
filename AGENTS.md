@@ -4,11 +4,13 @@ Project-level rules for this repo, shared by every coding agent. Framework and l
 
 ## Project
 
-Internal mobile app for backoffice users, built with **Expo** (React Native, TypeScript, Expo Router). Expo is the platform: when Expo has a way of doing something — an `expo-*` module, a config plugin, a CLI command — that is the way it is done here. Prioritize mobile-first patterns, performance, and cross-platform (iOS + Android) compatibility. There is no web target.
+External mobile app for the project's end users — customers, citizens, members, not the staff (that is the internal app, `internal-mobile-app/`) — built with **Expo** (React Native, TypeScript, Expo Router). Expo is the platform: when Expo has a way of doing something — an `expo-*` module, a config plugin, a CLI command — that is the way it is done here. Prioritize mobile-first patterns, performance, and cross-platform (iOS + Android) compatibility. There is no web target.
 
 The backend is the Laravel API — `../api` in a generated project, `../laravel-backend-ai-setup` in the template workspace. The contract between the two is `docs/frontend-integration.md` in the backend repo, and the generated reference is at `/docs/api` on the running backend. That reference is generated from code and cannot go stale, so it wins over anything written here.
 
-The UI is **in Serbian**, because the API's `message` field is written for the end user in Serbian and is meant to be shown verbatim. Do not paraphrase an API message or replace it with wording of your own — see [API boundary](#api-boundary).
+The UI is **in Serbian (Latin script) and English**, Serbian by default — every string goes through i18next (`src/i18n/sr.json`, `en.json`; rules in `docs/localization.md`). The API answers in the app's language (`Accept-Language` on every request) and its `message` is shown verbatim. Do not paraphrase an API message or replace it with wording of your own — see [API boundary](#api-boundary).
+
+Its accounts are the backend's `mobile_users` (sign-in by emailed code, Google or Apple — `docs/sign-in.md`), a separate population from the staff's `users`: a staff token is refused on `/mobile/v1/*` and this app's token on everything else.
 
 ## Expo has changed — do not trust your training data
 
@@ -103,7 +105,7 @@ src/
     _layout.tsx             root: providers (QueryClientProvider), auth hydration gate
     (auth)/_layout.tsx      signed-out group
     (app)/_layout.tsx       signed-in group (tabs / stacks)
-    (app)/users/index.tsx   a route renders a feature screen and nothing more
+    (app)/edit-profile.tsx  a route renders a feature screen and nothing more
   features/
     <feature>/
       screens/              screen bodies rendered by src/app routes
@@ -125,6 +127,9 @@ src/
     zustand.ts              `create` (reset on sign-out) and `createDeviceStore` (kept)
     theme-transition.ts     our theme-transition native module, wrapped like any native dependency
     sentry.ts               error reports: init, root wrapper, reportError, the signed-in user's id
+    i18n.ts                 i18next: languages, `t()` outside components, the `Intl` locale
+    google-sign-in.tsx      Google Sign-In, loaded lazily; the button hides without client ids
+    apple-sign-in.tsx       Sign in with Apple and its nonce, loaded lazily; iOS only, opt-in
 modules/                    our own native code — local Expo modules (Swift + Kotlin, Expo Modules API),
                             scaffolded with `npx create-expo-module --local`; app code reaches them via lib/
 ```
@@ -133,22 +138,21 @@ Create directories on demand; do not scatter equivalents elsewhere.
 
 ### Feature rules
 
-- The feature folder is the unit of ownership. **No cross-feature imports** — if `users` needs something from `auth`, that something moves to `features/shared/` first. Promote code to `shared/` on the third use, not pre-emptively.
+- The feature folder is the unit of ownership. **No cross-feature imports** — if `account` needs something from `auth`, that something moves to `features/shared/` first. Promote code to `shared/` on the third use, not pre-emptively.
 - The root layout decides between `(app)` and `(auth)` with `Stack.Protected`, and each guard has an explicit `redirectTo` (SDK 58+) — `/` belongs to `(app)`, so without it a signed-out launch resolves to _Unmatched Route_. Screens never navigate after a login or logout; changing the session status is enough.
-- The root navigator renders nothing while the stored token is being checked (the splash covers it). Rendering the guards early treats the user as signed out and redirects a launch URL — a link, later a notification — to the login, losing it. `src/__tests__/auth-routing.test.tsx` holds this.
-- **Reference feature: `users`** — the web's users CRUD on mobile, and the pattern for any resource:
-  - read: list with search and pull to refresh, detail with the list row (or the session) as placeholder data, 404 and bad-param states;
-  - write: create / edit form in a modal (`user-form/new`, `user-form/[id]` in `(app)`), one's own profile edited through the same form;
-  - actions: the header's native `Stack.Toolbar.Menu`, offered by a pure rules function (`utils/user-actions.ts`, mirroring the web's), each confirmed with `ConfirmDialog`, the backend's message as a toast, a refusal shown on screen;
-  - paginated lists (`useInfiniteQuery` + `nextPage(meta)`, next page on `onEndReached`) — the audit trails.
-    New features mirror it — the `new-feature` skill walks through the steps.
-- **Client-only features:** `shortcuts` (per-account history in a `create` store, persisted per user id, counted from `usePathname` in `(app)/_layout.tsx`) and `appearance` (theme in a `createDeviceStore`, applied with `Appearance.setColorScheme` before the first frame). Device preferences survive sign-out; anything about a person must not.
-- **This phone and push (`notifications`)** — internal users only. Login sends `device` (`features/shared/api/device.ts`, built from `lib/device.ts`); the signed-in layout runs `usePushRegistration`, which `PUT /auth/device`s the phone on every launch with the push token three-state (omitted = keep, `null` = off, string = on), and asks for permission automatically once per install (`shouldAskAutomatically`). Asking does not depend on configuration; getting a token needs `EAS_PROJECT_ID`, read by `app.config.ts` — never write the id or an `owner` into `app.json`, the template stays bound to no account. Setting a project up: `docs/push-notifications.md`. Logout needs no device call — the backend unbinds the phone when the token goes.
+- The root navigator renders nothing while the stored token is being checked (the splash covers it). Rendering the guards early treats the user as signed out and redirects a launch URL — a link, later a notification — to the welcome screen, losing it. `src/__tests__/auth-routing.test.tsx` holds this.
+- **Reference features:**
+  - **`auth`** — the way in: welcome (address, Google, Apple), the six-digit code (one hidden field under six boxes, `oneTimeCode` autofill, sent on the sixth digit, "send again" behind the server's `retry_after` / `Retry-After` countdown), registration. Screens hand each other state through `stores/auth-flow.ts` (memory only). Failures are told apart **by HTTP status** (`utils/sign-in-errors.ts`), never by message text.
+  - **`account`** — the pattern for anything that **writes**: the profile form in a modal (`edit-profile` in `(app)`, dirty tracking, "discard changes?" on every way out, the backend's message as a toast), deleting the account behind a confirmation (Apple re-authorisation first for an Apple-linked account; backing out still deletes).
+  - For anything that **reads** a resource (list with search and pull to refresh, detail, paginated lists) mirror `src/features/users` in the internal app's template (`dev-uros/expo-internal-ai-setup`) — this app ships no such screen until a project needs one.
+    The `new-external-feature` skill walks through the steps.
+- **Client-only features:** `appearance` (theme) and `language` (`sr` / `en`), both `createDeviceStore`s applied before the first frame (`applySavedTheme`, `applySavedLanguage` in the root layout). Changing the language also refetches every query and tells a signed-in account (`PATCH /mobile/v1/me` `locale`), so mail and pushes follow. Device preferences survive sign-out; anything about a person must not.
+- **This phone and push (`notifications`)** — the external app's accounts (`mobile_user_devices`). Every sign-in and registration sends `device` (`features/shared/api/device.ts`, built from `lib/device.ts`); the signed-in layout runs `usePushRegistration`, which `PUT /mobile/v1/device`s the phone on every launch with the push token three-state (omitted = keep, `null` = off, string = on), and asks for permission automatically once per install (`shouldAskAutomatically`). Asking does not depend on configuration; getting a token needs `EAS_PROJECT_ID`, read by `app.config.ts` — never write the id or an `owner` into `app.json`, the template stays bound to no account. Setting a project up: `docs/push-notifications.md`. Logout needs no device call — the backend clears this phone's push token and unbinds it when the token goes. Signing out (and any end of the session) also signs out of Google on the phone, so the next person is asked which account.
 - **Error reports (Sentry)** go through `lib/sentry.ts`, never the bare package. Uncaught JS errors and native crashes are caught by the SDK; `ErrorScreen` reports what a boundary caught; `reportQueryError` in `lib/query-client.ts` reports failed calls that are bugs — a 5xx (tagged `request_id`) or anything not an `ApiError` (a Zod mismatch, our own throw) — and never a 4xx or a network failure. A new `catch` that swallows a bug calls `reportError`; one that handles an expected answer does not. Only the user's id is attached, never e-mail or other personal data. Nothing is sent from a development build or without `EXPO_PUBLIC_SENTRY_DSN`; the DSN, `SENTRY_ORG` and `SENTRY_PROJECT` come from the environment through `app.config.ts` — never write them into `app.json`, and `SENTRY_AUTH_TOKEN` into no file at all. Setting a project up: `docs/sentry.md`.
-- A query-key root that more than one feature touches (`users`: profile edits change a row in it) lives in `features/shared/query/keys.ts`; the owning feature builds its keys on it, the other invalidates it.
+- A query-key root that more than one feature touches lives in `features/shared/query/keys.ts` (create it when the first one appears); the owning feature builds its keys on it, the other invalidates it. The signed-in account itself is not a query: it lives in the session store, and every answer that returns it (`PATCH /me`, avatar) replaces it there.
 - `(app)/_layout.tsx` is a Stack holding `(tabs)` and the modals. Declare a modal there (`presentation: 'modal'`), not inside a tab's stack — inside a tab it opens within the tab and the tab bar stays visible.
 - `NativeTabs` import from `expo-router/native-tabs`. The `expo-router/unstable-native-tabs` path some docs and skills still show is deprecated in SDK 58.
-- Route files in `src/app/` render a screen from `features/<feature>/screens/` and only read route params. No business logic, no data fetching, no markup that belongs in a screen or component. When one screen needs a piece another feature owns, **the route composes them** — the screen takes a slot prop and the route fills it (`(profile)/profile.tsx` renders `<ProfileScreen footer={<SignOutSection />} />`: the profile is `profile`'s, sign-out is `auth`'s). The route is the one place two features meet; neither imports the other.
+- Route files in `src/app/` render a screen from `features/<feature>/screens/` and only read route params. No business logic, no data fetching, no markup that belongs in a screen or component. When one screen needs a piece another feature owns, **the route composes them** — the screen takes a slot prop and the route fills it (`(settings)/settings.tsx` renders `<SettingsScreen footer={<SignOutSection />…} />`: settings are `account`'s, sign-out is `auth`'s; ending the session after a deletion is passed to `DeleteAccountSection` as `onDeleted` the same way). The route is the one place two features meet; neither imports the other.
 - `<Link asChild>` passes its child's `style` through untouched: give the child one plain object (`StyleSheet.flatten`), never an array or a `({ pressed }) => …` function — the style is silently dropped. Draw a pressed state in the child's content instead.
 - `api/` returns parsed, typed data. `query/` wraps it in `useQuery` / `useMutation` and owns the query keys (nested under one root per feature, so a write invalidates the whole feature by prefix). Screens and components call `query/`, never `api/` directly.
 - `src/lib/` is the only place a third-party library is configured — one module per library, no domain knowledge (no endpoints, schemas, or feature types). Feature code imports the `lib/` module, never the bare package, and never calls raw `fetch`.
@@ -208,9 +212,10 @@ Two layers, split by purpose: Jest covers logic and component behaviour, Maestro
 src/lib/http.test.ts
 src/features/shared/utils/api-errors.test.ts
 src/features/auth/schemas/credentials.test.ts
-src/features/auth/screens/login-screen.test.tsx
+src/features/auth/hooks/use-code-form.test.tsx
 ```
 
+- **i18n in tests:** `jest.setup.ts` initialises i18next in Serbian, so tests assert the Serbian strings; switch with `changeLanguage('en')` from `@/lib/i18n` and switch back in `afterEach`.
 - **Never put a test inside `src/app/`** — every file there becomes a route. Tests that need the router (redirects, guards, the auth flow) live in `src/__tests__/` and use `renderRouter` from `expo-router/testing-library` against the real `./src/app` directory.
 - `@expo/ui` controls render as native views, and Jest cannot type into them or read their labels. Keep a screen's behaviour in a hook (`features/<feature>/hooks/use-x-form.ts`) and test the hook with `renderHook`; test the screen for what it shows; cover the typing and tapping with a Maestro flow. A button Jest must press gets a `testID` (`ScreenMessage` derives `<testID>-action`).
 - Jest runs as iOS (`jest-expo`): a component split into `.ios.tsx` / `.android.tsx` is tested in its iOS form. Test the state behind a native control; Maestro presses it on both platforms.
@@ -220,11 +225,15 @@ src/features/auth/screens/login-screen.test.tsx
 **E2E (Maestro)** — YAML flows outside `src/`, one folder per feature:
 
 ```
-.maestro/auth/login.yaml
+.maestro/auth/sign-in-and-out.yaml
 .maestro/auth/invalid-credentials.yaml
 ```
 
 - Flows run against the app installed on a booted simulator / emulator (`npm run ios` / `npm run android`) talking to the **live local backend**, so the backend must be up with its demo data.
+- **Signing in in a flow:** the backend's demo accounts (`MOBILE_DEMO_EMAILS`, `php artisan mobile:demo-accounts`) take the fixed `MOBILE_DEMO_CODE` (`424242` locally) and are never mailed — `shared/sign-in.yaml` with `EMAIL`. Each flow uses its own `maestro.<flow>@example.com`: the backend allows 5 codes an hour per address and 20 per IP, so between two full runs on both platforms clear the limiter (`make artisan c="cache:clear"` in `api/`). `auth/register-and-delete.yaml` registers an address from the list that has no account and deletes it again, so it can run any number of times.
+- **`hideKeyboard` is a back press on Android when no keyboard is up** — on a form guarded by "discard changes?" it opens the question (or leaves the modal). Use it only right after typing.
+- **Switches (`@expo/ui` `Switch`) go through `shared/toggle-switch.yaml`** with `LABEL` and `ID`: Android flips on a tap of the label (the Compose switch's testID is not in the tree), iOS only on the switch itself (a SwiftUI toggle's label ignores taps), so the helper taps the label on one and the right-hand end of the testID on the other.
+- **A flow changes state from whatever it starts with.** A run that dies half-way leaves its account changed; a form check that types the value already saved changes nothing, and "Sačuvaj" stays disabled. Type a value no run ever saves for checks that are not saved, and end the flow where the demo account begins.
 - `appId` in each flow is `ios.bundleIdentifier` / `android.package` from `app.json`.
 - Before running flows on an Android emulator, turn off stylus handwriting once: `adb shell settings put secure stylus_handwriting_enabled 0`. Otherwise a tap into a text field sometimes opens handwriting mode instead of the keyboard, and the next step fails for no reason in the app.
 - Select elements by visible text or accessibility label, the same way a user finds them. Anything a flow must see must be an accessibility element — `pointerEvents="none"` drops a view from the Android accessibility tree, for TalkBack and Maestro alike.
@@ -250,7 +259,7 @@ Load the listed source for the task instead of working from memory. Their conten
 | HTTP, TanStack Query, auth tokens, offline                 | `expo-data-fetching`                                                                                         |
 | Performance: re-renders, FPS, lists, startup, bundle size  | `react-native-best-practices`                                                                                |
 | Builds, store submission, OTA updates, CI                  | `eas-app-stores`, `eas-update`, `eas-workflows`, `expo-dev-client`                                           |
-| Adding a feature (screen, list, detail, form)              | `new-feature` skill (this repo) — mirrors `users` / `profile`                                                |
+| Adding a feature (screen, list, detail, form)              | `new-external-feature` skill (this repo) — mirrors `account` (writes) and the internal app's `users` (reads) |
 | Jest / component tests                                     | `react-native-testing` (RNTL v14) + https://docs.expo.dev/router/reference/testing.md for route tests        |
 | E2E flows, driving a simulator                             | **`maestro` MCP** + https://docs.maestro.dev                                                                 |
 | SDK upgrade                                                | `expo-upgrade`                                                                                               |
@@ -276,7 +285,7 @@ Never run `eas init` in the template: it binds the project to one Expo account. 
 
 **Three app variants** (`docs/builds.md`): `APP_VARIANT` = `development` | `preview` | `production`, read by `app.config.ts`. Each has its own bundle id / package (`.dev`, `.preview` suffix on `app.json`'s production id), name suffix (`(Dev)`, `(Test)`) and URL scheme, so all three install side by side; the variant also picks the Sentry environment (`extra.appVariant`) and the iOS push environment. `.env.local` sets `development`, so local work (`npm run ios` / `android`, Maestro flows on `<id>.dev`) is always the dev app; each `eas.json` profile sets its own variant and EAS environment; unset means `production`. Never hard-code a variant's id elsewhere — derive it in `app.config.ts`. Switching the variant of an existing `ios/` / `android/` folder needs `npx expo prebuild --clean`. Builds: `npm run build:dev` / `build:preview` / `build:production`, `npm run submit:production`.
 
-**Updates** (`docs/updates.md`): `expo-updates` with `runtimeVersion: { policy: 'appVersion' }` and one channel per variant (`preview`, `production` in `eas.json`); off without `EAS_PROJECT_ID`. Publish only with `npm run update:preview` / `update:production` — they set `APP_VARIANT` and `--environment`; a bare `eas update` ships production's config and `.env.local`'s API URL. **Any native change — a package with native code, a config plugin or its options, permissions, icons, an SDK upgrade — bumps `version` in `app.json`**, or an OTA update can reach a build without that native code. Separately, `UpdateRequiredGate` (`src/features/app-version/`) wraps the whole app: it asks the public `GET /mobile/app-version/{platform}` on launch and on every return to the foreground, and an app older than the server's `minimum_version` shows only "update required". It fails open — offline, a server error or a value that is not a version lets the app run. Signing out (`endSession`) removes every query except those marked `meta: { keepOnSignOut: true }` — a query that belongs to the app rather than the user, like this one, must carry it; removing a query a mounted component watches leaves that component waiting forever. Mock `@/features/app-version/api/app-version` in tests that render the real root layout.
+**Updates** (`docs/updates.md`): `expo-updates` with `runtimeVersion: { policy: 'appVersion' }` and one channel per variant (`preview`, `production` in `eas.json`); off without `EAS_PROJECT_ID`. Publish only with `npm run update:preview` / `update:production` — they set `APP_VARIANT` and `--environment`; a bare `eas update` ships production's config and `.env.local`'s API URL. **Any native change — a package with native code, a config plugin or its options, permissions, icons, an SDK upgrade — bumps `version` in `app.json`**, or an OTA update can reach a build without that native code. Separately, `UpdateRequiredGate` (`src/features/app-version/`) wraps the whole app: it asks the public `GET /mobile/app-version/external/{platform}` on launch (`external` = this app; the internal app has its own minimum) and on every return to the foreground, and an app older than the server's `minimum_version` shows only "update required". It fails open — offline, a server error or a value that is not a version lets the app run. Signing out (`endSession`) removes every query except those marked `meta: { keepOnSignOut: true }` — a query that belongs to the app rather than the user, like this one, must carry it; removing a query a mounted component watches leaves that component waiting forever. Mock `@/features/app-version/api/app-version` in tests that render the real root layout.
 
 ## House style
 

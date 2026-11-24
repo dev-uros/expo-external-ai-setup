@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppState, Linking } from 'react-native';
 
 import { ApiError } from '@/lib/http';
@@ -22,16 +23,6 @@ import {
 export type NotificationsState =
   'loading' | 'error' | 'enabled' | 'unconfigured' | 'unregistered' | 'disabled' | 'blocked';
 
-export const NOTIFICATION_TEXTS: Record<NotificationsState, string> = {
-  loading: 'Učitavanje…',
-  error: 'Podaci o uređaju trenutno nisu dostupni.',
-  enabled: 'Uključena na ovom uređaju.',
-  unconfigured: 'Dozvoljena, ali slanje obaveštenja još nije podešeno za ovu aplikaciju.',
-  unregistered: 'Dozvoljena, ali uređaj još nije prijavljen za obaveštenja.',
-  disabled: 'Isključena na ovom uređaju.',
-  blocked: 'Isključena. Uključite ih u podešavanjima telefona.',
-};
-
 export interface NotificationsAction {
   label: string;
   onPress: () => void;
@@ -53,6 +44,7 @@ export function describeDevice(device: Device): string {
  * off means one to clear.
  */
 export function useNotificationsSection() {
+  const { t } = useTranslation();
   const device = useCurrentDeviceQuery();
   const permission = usePushPermissionQuery();
   const sync = useSyncPushMutation();
@@ -96,10 +88,10 @@ export function useNotificationsSection() {
             : 'disabled';
 
   const fail = (failure: unknown) =>
-    setError(failure instanceof ApiError ? failure.message : 'Došlo je do greške.');
+    setError(failure instanceof ApiError ? failure.message : t('errors.generic'));
 
   const askAgain = (label: string): NotificationsAction => ({
-    label: sync.isPending ? 'Uključivanje…' : label,
+    label: sync.isPending ? t('notifications.enabling') : label,
     pending: sync.isPending,
     onPress: () => {
       setError(null);
@@ -110,7 +102,7 @@ export function useNotificationsSection() {
   let action: NotificationsAction | null = null;
   if (state === 'enabled') {
     action = {
-      label: testPush.isPending ? 'Slanje…' : 'Pošalji probno obaveštenje',
+      label: testPush.isPending ? t('notifications.sending') : t('notifications.send_test'),
       pending: testPush.isPending,
       onPress: () => {
         setError(null);
@@ -121,22 +113,22 @@ export function useNotificationsSection() {
       },
     };
   } else if (state === 'disabled') {
-    action = askAgain('Uključi obaveštenja');
+    action = askAgain(t('notifications.enable'));
   } else if (state === 'unregistered') {
-    action = askAgain('Pokušaj ponovo');
+    action = askAgain(t('common.retry'));
   } else if (state === 'blocked') {
     action = {
-      label: 'Otvori podešavanja',
+      label: t('common.open_settings'),
       pending: false,
       onPress: () => void Linking.openSettings(),
     };
   } else if (state === 'error') {
-    action = { label: 'Pokušaj ponovo', pending: false, onPress: () => void device.refetch() };
+    action = { label: t('common.retry'), pending: false, onPress: () => void device.refetch() };
   }
 
   return {
     state,
-    status: NOTIFICATION_TEXTS[state],
+    status: t(`notifications.state.${state}`),
     deviceLine: device.data ? describeDevice(device.data) : null,
     action,
     error,

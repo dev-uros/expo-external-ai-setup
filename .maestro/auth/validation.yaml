@@ -1,14 +1,46 @@
-# Local validation, before anything is sent: empty form, then a malformed email.
-appId: com.example.backoffice.dev
+# Checks on the phone, before anything is sent: the address on the welcome screen (empty, then
+# malformed — typing again clears the message), then the username on registration. The template
+# configures neither Google nor Apple, so the welcome screen offers neither.
+#
+# The address has no account and is in no list: "Nastavi" only asks whether it has an account
+# (no mail goes out without one), and the invalid username stops registration before a code is
+# asked for.
+appId: com.example.customers.dev
 tags: [auth]
 ---
 - runFlow: ../shared/launch-signed-out.yaml
-- tapOn: 'Prijavi se'
-- assertVisible: 'Unesite ispravnu email adresu'
-- assertVisible: 'Unesite lozinku'
+- assertNotVisible:
+    id: 'apple-sign-in'
+- assertNotVisible: 'ili'
+
+- tapOn: 'Nastavi'
+- assertVisible: 'Unesite email adresu.'
+
 - tapOn:
-    id: 'login-email'
+    id: 'welcome-email'
 - inputText: 'ana'
-- assertNotVisible: 'Unesite ispravnu email adresu'
-- tapOn: 'Prijavi se'
-- assertVisible: 'Unesite ispravnu email adresu'
+- assertNotVisible: 'Unesite email adresu.'
+- tapOn: 'Nastavi'
+- assertVisible: 'Email adresa nije ispravna.'
+
+- tapOn:
+    id: 'welcome-email'
+- eraseText: 100
+- inputText: 'maestro.validation@example.com'
+- tapOn: 'Nastavi'
+- extendedWaitUntil:
+    visible: 'Novi nalog'
+    timeout: 15000
+
+# The suggested username is valid; a space and capitals are not.
+- tapOn:
+    id: 'register-username'
+- eraseText: 100
+- inputText: 'Jo Vana'
+- hideKeyboard
+- scrollUntilVisible:
+    element: 'Pošalji kod'
+    direction: DOWN
+- tapOn: 'Pošalji kod'
+- assertVisible: 'Korisničko ime sme da sadrži samo mala slova, brojeve, tačku i donju crtu.'
+- assertVisible: 'Novi nalog'

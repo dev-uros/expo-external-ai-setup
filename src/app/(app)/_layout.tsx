@@ -2,7 +2,6 @@ import { Stack } from 'expo-router/stack';
 
 import { usePushRegistration } from '@/features/notifications/hooks/use-push-registration';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
-import { useTrackVisits } from '@/features/shortcuts/hooks/use-track-visits';
 
 /**
  * A screen that crashes while rendering is replaced by `ErrorScreen` in place — headers and the
@@ -17,17 +16,13 @@ export const unstable_settings = {
  * here covers the tab bar; one declared inside a tab's stack would open within the tab.
  */
 export default function AppLayout() {
-  // Every screen of the signed-in app counts towards the home screen's shortcuts.
-  useTrackVisits();
   // Records this phone for the session and, once allowed, its push token.
   usePushRegistration();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      {/* Creating a user, and editing one — one's own profile included. */}
-      <Stack.Screen name="user-form/new" options={{ presentation: 'modal', headerShown: true }} />
-      <Stack.Screen name="user-form/[id]" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="edit-profile" options={{ presentation: 'modal', headerShown: true }} />
     </Stack>
   );
 }

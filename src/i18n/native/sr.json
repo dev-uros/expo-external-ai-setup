@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Customers koristi kameru da biste fotografisali profilnu sliku.",
+    "NSPhotoLibraryUsageDescription": "Customers pristupa izabranoj fotografiji da biste je postavili kao profilnu sliku."
+  }
+}

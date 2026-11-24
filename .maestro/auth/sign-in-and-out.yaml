@@ -1,68 +1,40 @@
-# Happy path: sign in, land on home, the session survives a restart, the profile shows who is
-# signed in, and signing out asks first.
-appId: com.example.backoffice.dev
+# An address with an account gets a code; the code signs in, the home screen greets by the shown
+# name. Signing out asks first and lands back on the welcome screen. A restart keeps the session.
+appId: com.example.customers.dev
 tags: [auth]
 ---
 - runFlow: ../shared/launch-signed-out.yaml
 - runFlow:
     file: ../shared/sign-in.yaml
     env:
-      EMAIL: uros.minic@fifthguild.com
-      PASSWORD: password
+      EMAIL: maestro@example.com
 - extendedWaitUntil:
-    visible: 'Dobro došli, Uroš.'
-    timeout: 15000
-# Restart without clearing anything: the stored token is checked with /auth/me.
+    visible: 'Ćao, maestro_demo'
+    timeout: 20000
+
 - stopApp
 - runFlow: ../shared/open-dev-server.yaml
 - extendedWaitUntil:
-    visible: 'Dobro došli, Uroš.'
+    visible: 'Ćao, maestro_demo'
     timeout: 30000
-- tapOn: 'Profil'
-- assertVisible: 'Uroš Minić'
-- assertVisible: 'Administrator'
-- assertVisible: 'Promeni profilnu sliku'
-# The admin has no picture: initials stand in. On iOS the avatar is a single accessibility
-# element (the button), so the initials inside it are not separately visible to Maestro.
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - assertVisible: 'UM'
 
-# Android only (iOS alerts have no back): the confirmation closes on the system back button and
-# on the back gesture (a swipe in from the screen edge) without signing out.
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - tapOn: 'Odjavi se'
-      - assertVisible: 'Da li ste sigurni da želite da se odjavite?'
-      - back
-      - assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
-      - assertVisible: 'Uroš Minić'
-      - tapOn: 'Odjavi se'
-      - assertVisible: 'Da li ste sigurni da želite da se odjavite?'
-      - swipe:
-          start: 0%, 50%
-          end: 60%, 50%
-          duration: 300
-      - assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
-      - assertVisible: 'Uroš Minić'
+- tapOn: 'Podešavanja'
+- scrollUntilVisible:
+    element:
+      id: 'sign-out'
+    direction: DOWN
 
-# Cancel keeps the session too.
-- tapOn: 'Odjavi se'
+# Cancel keeps the session.
+- tapOn:
+    id: 'sign-out'
 - tapOn: 'Otkaži'
 - assertNotVisible: 'Da li ste sigurni da želite da se odjavite?'
-- assertVisible: 'Uroš Minić'
 
 # Confirming signs out. On iOS the screen's own "Odjavi se" stays in the hierarchy behind the
-# alert, and Maestro orders the matches top to bottom (`below:` / `rightOf:` pick the screen's
-# button too). The alert sits mid-screen and the profile's button lower, under the account,
-# appearance and notifications cards, so the alert's button comes first. A profile layout that
-# moves the button above the middle of the screen needs index 1 here. Android's dialog leaves
-# only one.
-- tapOn: 'Odjavi se'
+# alert, and Maestro orders the matches top to bottom; the alert sits mid-screen and the button
+# low on Settings, so the alert's comes first. Android's dialog leaves only one.
+- tapOn:
+    id: 'sign-out'
 - assertVisible: 'Da li ste sigurni da želite da se odjavite?'
 - runFlow:
     when:
@@ -77,5 +49,5 @@ tags: [auth]
     commands:
       - tapOn: 'Odjavi se'
 - extendedWaitUntil:
-    visible: 'Prijavite se svojim poslovnim nalogom.'
+    visible: 'Unesite email adresu i poslaćemo vam kod za prijavu.'
     timeout: 15000

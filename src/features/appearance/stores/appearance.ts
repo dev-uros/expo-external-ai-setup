@@ -6,8 +6,7 @@ import { applyColorScheme, crossFade } from '@/lib/theme-transition';
 import { createDeviceStore } from '@/lib/zustand';
 
 /**
- * The theme the user picked: follow the system, or always light or dark — the web's
- * "Sistemska / Svetla / Tamna". It belongs to the phone, not the account, as on the web
+ * The theme the user picked: follow the system, or always light or dark. It belongs to the phone, not the account, as on the web
  * (where it lives in the browser): signing out keeps it.
  *
  * It is applied with `Appearance.setColorScheme`, which overrides the whole app — React Native
@@ -18,12 +17,6 @@ import { createDeviceStore } from '@/lib/zustand';
 export const themePreferenceSchema = z.enum(['system', 'light', 'dark']);
 
 export type ThemePreference = z.infer<typeof themePreferenceSchema>;
-
-export const THEME_LABELS: Record<ThemePreference, string> = {
-  system: 'Sistemska',
-  light: 'Svetla',
-  dark: 'Tamna',
-};
 
 const STORAGE_KEY = 'appearance.theme';
 

@@ -1,0 +1,22 @@
+# Flips an @expo/ui Switch. Inputs: LABEL (its text) and ID (its testID).
+#
+# On Android the Compose switch's testID is not in the view tree, but tapping its label row flips
+# it. On iOS it is the other way round: the SwiftUI toggle's label does not react to a tap, so the
+# tap goes to the right-hand end of the element — the switch itself.
+appId: com.example.customers.dev
+---
+- scrollUntilVisible:
+    element: ${LABEL}
+    direction: DOWN
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: ${LABEL}
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: ${ID}
+          point: '95%,50%'

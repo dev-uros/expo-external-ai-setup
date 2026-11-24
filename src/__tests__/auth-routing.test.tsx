@@ -5,10 +5,11 @@ import { ApiError, request } from '@/lib/http';
 import { readToken } from '@/lib/secure-store';
 import { endSession } from '@/features/auth/session';
 import { useSessionStore } from '@/features/shared/stores/session';
+import { makeUser } from '@/features/shared/testing/fixtures';
 
 /**
  * The launch decision and the guards, against the real `src/app` routes: which half of the app
- * a user can reach follows the session status alone.
+ * a person can reach follows the session status alone.
  */
 
 jest.mock('@/lib/secure-store', () => ({
@@ -32,97 +33,77 @@ jest.mock('@/features/app-version/api/app-version', () => ({
 
 const readTokenMock = readToken as jest.MockedFunction<typeof readToken>;
 const requestMock = request as jest.MockedFunction<typeof request>;
-
-const user = {
-  id: 1,
-  name: 'Ana',
-  surname: 'Anić',
-  email: 'ana@firma.com',
-  role: 'admin',
-  avatar_url: null,
-  deactivated_at: null,
-  email_verified_at: '2026-01-01T10:00:00+00:00',
-  created_at: '2026-01-01T10:00:00+00:00',
-  updated_at: '2026-01-01T10:00:00+00:00',
-};
+const user = makeUser({ display_name: 'Ana Anić', display_personal_name: true });
+const welcome = 'Unesite email adresu i poslaćemo vam kod za prijavu.';
 
 beforeEach(() => {
   jest.clearAllMocks();
   useSessionStore.setState({ status: 'loading', user: null });
 });
 
-test('no stored token: the login screen, and nothing behind it', async () => {
+test('no stored token: the welcome screen, and nothing behind it', async () => {
   readTokenMock.mockResolvedValueOnce(null);
 
   await renderRouter('./src/app');
 
-  expect(await screen.findByText('Prijavite se svojim poslovnim nalogom.')).toBeOnTheScreen();
-  expect(screen).toHavePathname('/login');
+  expect(await screen.findByText(welcome)).toBeOnTheScreen();
+  expect(screen).toHavePathname('/welcome');
   expect(requestMock).not.toHaveBeenCalled();
 });
 
-test('a valid stored token: straight to home, greeted by name', async () => {
+test('a valid stored token: straight to home, greeted by the shown name', async () => {
   readTokenMock.mockResolvedValueOnce('stored');
   requestMock.mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user });
 
   await renderRouter('./src/app');
 
-  expect(await screen.findByText('Dobro došli, Ana.')).toBeOnTheScreen();
+  expect(await screen.findByText('Ćao, Ana Anić')).toBeOnTheScreen();
   expect(screen).toHavePathname('/');
+  expect(requestMock).toHaveBeenCalledWith('/mobile/v1/me');
 });
 
-test('a rejected stored token: back to login', async () => {
+test('a rejected stored token: back to the welcome screen', async () => {
   readTokenMock.mockResolvedValueOnce('dead');
   requestMock.mockRejectedValueOnce(new ApiError(401, 'Unauthenticated.', 'r'));
 
   await renderRouter('./src/app');
 
-  expect(await screen.findByText('Prijavite se svojim poslovnim nalogom.')).toBeOnTheScreen();
-  expect(screen).toHavePathname('/login');
+  expect(await screen.findByText(welcome)).toBeOnTheScreen();
+  expect(screen).toHavePathname('/welcome');
 });
 
-test('signing out from inside the app lands on login', async () => {
+test('a blocked account (403) is signed out too', async () => {
+  readTokenMock.mockResolvedValueOnce('blocked');
+  requestMock.mockRejectedValueOnce(new ApiError(403, 'Vaš nalog je blokiran.', 'r'));
+
+  await renderRouter('./src/app');
+
+  expect(await screen.findByText(welcome)).toBeOnTheScreen();
+});
+
+test('signing out from inside the app lands on the welcome screen', async () => {
   readTokenMock.mockResolvedValueOnce('stored');
   requestMock.mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user });
   await renderRouter('./src/app');
-  await screen.findByText('Dobro došli, Ana.');
+  await screen.findByText('Ćao, Ana Anić');
 
   await act(() => endSession());
 
-  expect(await screen.findByText('Prijavite se svojim poslovnim nalogom.')).toBeOnTheScreen();
-  expect(screen).toHavePathname('/login');
-});
-
-test('a signed-in deep link to a user that cannot exist lands on "no such user"', async () => {
-  readTokenMock.mockResolvedValueOnce('stored');
-  requestMock.mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user });
-
-  await renderRouter('./src/app', { initialUrl: '/users/abc' });
-
-  expect(await screen.findByText('Korisnik ne postoji')).toBeOnTheScreen();
-  expect(screen).toHavePathname('/users/abc');
-  // An id that is not an id never reaches the server.
-  expect(requestMock).not.toHaveBeenCalledWith('/users/abc', expect.anything());
-  expect(requestMock.mock.calls.map(([path]) => path)).not.toContain('/users/abc');
+  expect(await screen.findByText(welcome)).toBeOnTheScreen();
+  expect(screen).toHavePathname('/welcome');
 });
 
 test('a deep link that arrives at launch survives the session check', async () => {
   readTokenMock.mockResolvedValueOnce('stored');
-  requestMock
-    .mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user })
-    .mockResolvedValueOnce({
-      message: 'Korisnik uspešno učitan.',
-      data: { ...user, id: 7, name: 'Marko', surname: 'Petrović', email: 'marko@firma.com' },
-    });
+  requestMock.mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user });
 
-  await renderRouter('./src/app', { initialUrl: '/users/7' });
+  await renderRouter('./src/app', { initialUrl: '/settings' });
 
-  expect(await screen.findByLabelText('Email: marko@firma.com')).toBeOnTheScreen();
-  expect(screen).toHavePathname('/users/7');
-  expect(requestMock).toHaveBeenCalledWith('/users/7');
-  // The signed-in app also records this phone for the session (internal_user_devices).
+  expect(await screen.findByText('ana@example.com')).toBeOnTheScreen();
+  expect(screen).toHavePathname('/settings');
+  // The signed-in app also records this phone for the session (mobile_user_devices).
   expect(requestMock).toHaveBeenCalledWith(
-    '/auth/device',
+    '/mobile/v1/device',
     expect.objectContaining({ method: 'PUT' })
   );
 });

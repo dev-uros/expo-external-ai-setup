@@ -1,25 +1,21 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View, useColorScheme } from 'react-native';
 
-import {
-  THEME_LABELS,
-  useAppearanceStore,
-  type ThemePreference,
-} from '@/features/appearance/stores/appearance';
+import { useAppearanceStore } from '@/features/appearance/stores/appearance';
 import { SegmentedControl } from '@/features/shared/components/segmented-control';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { font } from '@/features/shared/utils/typography';
 
-const OPTIONS = (['system', 'light', 'dark'] as const).map((value: ThemePreference) => ({
-  value,
-  label: THEME_LABELS[value],
-}));
+const THEMES = ['system', 'light', 'dark'] as const;
 
 /**
- * "Izgled" on the profile: the theme, and — as on the web — which one is in effect right now,
- * which is the useful thing to know when "Sistemska" is picked.
+ * The theme section of Settings, and which theme is in effect right now — the useful thing to
+ * know when "system" is picked.
  */
 export function AppearanceSection() {
   const palette = usePalette();
+  const { t } = useTranslation();
+  const options = THEMES.map((value) => ({ value, label: t(`appearance.theme.${value}`) }));
   const preference = useAppearanceStore((state) => state.preference);
   const setPreference = useAppearanceStore((state) => state.setPreference);
   const resolved = useColorScheme();
@@ -28,15 +24,15 @@ export function AppearanceSection() {
     <View style={[styles.card, { backgroundColor: palette.cardBackground }]}>
       <View style={styles.heading}>
         <Text accessibilityRole="header" style={[styles.title, { color: palette.label }]}>
-          Izgled
+          {t('appearance.title')}
         </Text>
         <Text style={[styles.hint, { color: palette.secondaryLabel }]}>
-          {`Trenutno je uključena ${resolved === 'dark' ? 'tamna' : 'svetla'} tema.`}
+          {resolved === 'dark' ? t('appearance.now_dark') : t('appearance.now_light')}
         </Text>
       </View>
       <SegmentedControl
-        label="Tema"
-        options={OPTIONS}
+        label={t('appearance.theme_label')}
+        options={options}
         value={preference}
         onChange={setPreference}
       />

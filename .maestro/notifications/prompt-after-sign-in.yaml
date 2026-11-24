@@ -1,7 +1,7 @@
 # The system asks for notifications right after signing in. Refusing is not the end: the profile
 # says notifications are off and offers the way back — on Android the app may ask again, on iOS
 # the system asks only once, so the button opens the settings app.
-appId: com.example.backoffice.dev
+appId: com.example.customers.dev
 tags: [notifications]
 ---
 - runFlow:
@@ -11,17 +11,16 @@ tags: [notifications]
 - runFlow:
     file: ../shared/sign-in.yaml
     env:
-      EMAIL: ana.nikolic@fifthguild.com
-      PASSWORD: password
+      EMAIL: maestro.prompt@example.com
 # The system prompt, over the home screen. "Don't allow" on Android, "Don’t Allow" on iOS.
 - extendedWaitUntil:
     visible: 'Don.t [Aa]llow'
     timeout: 15000
 - tapOn: 'Don.t [Aa]llow'
 - extendedWaitUntil:
-    visible: 'Dobro došli, Ana.'
+    visible: 'Ćao, maestro.prompt_demo'
     timeout: 15000
-- tapOn: 'Profil'
+- tapOn: 'Podešavanja'
 - scrollUntilVisible:
     element: 'Obaveštenja'
     direction: DOWN
@@ -54,10 +53,10 @@ tags: [notifications]
           timeout: 15000
       - assertVisible: 'Otvori podešavanja'
 
-# A restart does not ask again on its own — from now on the profile's button does.
+# A restart does not ask again on its own — from now on the Settings button does.
 - stopApp
 - runFlow: ../shared/open-dev-server.yaml
 - extendedWaitUntil:
-    visible: 'Dobro došli, Ana.'
+    visible: 'Ćao, maestro.prompt_demo'
     timeout: 30000
 - assertNotVisible: 'Don.t [Aa]llow'

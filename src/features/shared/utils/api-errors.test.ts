@@ -1,6 +1,6 @@
 import { ApiError } from '@/lib/http';
 import {
-  GENERIC_MESSAGE,
+  genericMessage,
   NO_FEEDBACK,
   toDisplayMessage,
   toFormFeedback,
@@ -54,6 +54,6 @@ test.each([
 });
 
 test('anything that is not an API error gets the generic message', () => {
-  expect(toFormFeedback(new Error('boom'), FIELDS).message).toBe(GENERIC_MESSAGE);
-  expect(toDisplayMessage(new Error('boom'))).toBe(GENERIC_MESSAGE);
+  expect(toFormFeedback(new Error('boom'), FIELDS).message).toBe(genericMessage());
+  expect(toDisplayMessage(new Error('boom'))).toBe(genericMessage());
 });

@@ -1,10 +1,8 @@
 import { Host } from '@expo/ui';
 import { AlertDialog, Text, TextButton } from '@expo/ui/jetpack-compose';
 
-import {
-  DEFAULT_CANCEL_LABEL,
-  type ConfirmDialogProps,
-} from '@/features/shared/components/confirm-dialog.types';
+import { t } from '@/lib/i18n';
+import type { ConfirmDialogProps } from '@/features/shared/components/confirm-dialog.types';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { font } from '@/features/shared/utils/typography';
 
@@ -17,7 +15,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
-  cancelLabel = DEFAULT_CANCEL_LABEL,
+  cancelLabel = t('common.cancel'),
   destructive = false,
   onConfirm,
   onCancel,

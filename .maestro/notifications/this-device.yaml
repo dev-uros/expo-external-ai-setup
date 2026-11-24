@@ -1,24 +1,23 @@
-# Signing in records the phone for the session (internal_user_devices), and the profile reads it
-# back from GET /auth/device — so the phone's model and system on screen prove the row exists and
+# Signing in records the phone for the session (mobile_user_devices), and Settings read it
+# back from GET /mobile/v1/device — so the phone's model and system on screen prove the row exists and
 # is bound to this session. A restart (session restore) still finds it.
 #
 # Notifications are allowed up front. The template has no EAS project, so there is no push token
 # to send to: the section says sending is not set up and offers no action. In a project with
 # EAS_PROJECT_ID and credentials set (docs/push-notifications.md) the state is "Uključena na
 # ovom uređaju." with the test button instead — change the two assertions below then.
-appId: com.example.backoffice.dev
+appId: com.example.customers.dev
 tags: [notifications]
 ---
 - runFlow: ../shared/launch-signed-out.yaml
 - runFlow:
     file: ../shared/sign-in.yaml
     env:
-      EMAIL: ana.nikolic@fifthguild.com
-      PASSWORD: password
+      EMAIL: maestro.device@example.com
 - extendedWaitUntil:
-    visible: 'Dobro došli, Ana.'
+    visible: 'Ćao, maestro.device_demo'
     timeout: 15000
-- tapOn: 'Profil'
+- tapOn: 'Podešavanja'
 - scrollUntilVisible:
     element: 'Obaveštenja'
     direction: DOWN
@@ -38,13 +37,13 @@ tags: [notifications]
           timeout: 15000
 - assertVisible: 'Dozvoljena, ali slanje obaveštenja još nije podešeno za ovu aplikaciju.'
 
-# Restart: the stored token is checked, the phone registered again with PUT /auth/device.
+# Restart: the stored token is checked, the phone registered again with PUT /mobile/v1/device.
 - stopApp
 - runFlow: ../shared/open-dev-server.yaml
 - extendedWaitUntil:
-    visible: 'Dobro došli, Ana.'
+    visible: 'Ćao, maestro.device_demo'
     timeout: 30000
-- tapOn: 'Profil'
+- tapOn: 'Podešavanja'
 - scrollUntilVisible:
     element: 'Obaveštenja'
     direction: DOWN

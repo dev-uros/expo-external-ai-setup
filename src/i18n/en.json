@@ -1,0 +1,154 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "open_settings": "Open Settings",
+    "please_wait": "Please wait…",
+    "save": "Save",
+    "saving": "Saving…",
+    "tap_to_dismiss": "Tap to dismiss",
+    "logo": "Logo"
+  },
+  "tabs": {
+    "home": "Home",
+    "settings": "Settings"
+  },
+  "errors": {
+    "unreachable": "The server is not reachable right now. Please try again.",
+    "generic": "Something went wrong.",
+    "unexpected": "Something unexpected went wrong. Please try again.",
+    "screen_title": "Something went wrong",
+    "screen_message": "Something unexpected went wrong. Please try again, and let us know if it happens again."
+  },
+  "validation": {
+    "email_required": "Enter your email address.",
+    "email_invalid": "This email address is not valid.",
+    "username_short": "A username needs at least 3 characters.",
+    "username_long": "A username may have at most 30 characters.",
+    "username_format": "A username may contain only lower-case letters, digits, dots and underscores.",
+    "name_long": "At most 100 characters."
+  },
+  "auth": {
+    "welcome": {
+      "title": "Welcome",
+      "subtitle": "Enter your email address and we will send you a sign-in code.",
+      "continue": "Continue",
+      "or": "or"
+    },
+    "fields": {
+      "email": "Email",
+      "email_placeholder": "name@example.com",
+      "username": "Username",
+      "first_name": "First name (optional)",
+      "last_name": "Last name (optional)",
+      "display_personal_name": "Show my name instead of my username"
+    },
+    "code": {
+      "title": "Sign-in code",
+      "sent_to": "We sent a six-digit code to",
+      "field": "Code from the email",
+      "checking": "Checking the code…",
+      "resend": "Send the code again",
+      "resend_in_one": "New code in {{count}} second",
+      "resend_in_other": "New code in {{count}} seconds",
+      "change_email": "Change email address"
+    },
+    "register": {
+      "title": "New account",
+      "avatar_hint": "Profile picture (optional)",
+      "send_code": "Send code",
+      "create": "Create account"
+    },
+    "sign_out": {
+      "button": "Sign out",
+      "pending": "Signing out…",
+      "title": "Sign out",
+      "message": "Are you sure you want to sign out?"
+    }
+  },
+  "home": {
+    "greeting": "Hi, {{name}}",
+    "greeting_anonymous": "Hi",
+    "placeholder": "The app's content goes here."
+  },
+  "account": {
+    "edit": {
+      "title": "Edit profile",
+      "discard_title": "Discard changes?",
+      "discard_message": "Changes you have not saved will be lost.",
+      "discard": "Discard",
+      "keep_editing": "Keep editing"
+    },
+    "about": {
+      "title": "About",
+      "privacy": "Privacy policy",
+      "version": "Version {{version}} ({{build}})"
+    },
+    "delete": {
+      "button": "Delete account",
+      "pending": "Deleting…",
+      "title": "Delete account",
+      "message": "Your account and all personal data will be deleted for good and you will be signed out on every device. This cannot be undone.",
+      "confirm": "Delete for good"
+    }
+  },
+  "language": {
+    "title": "Language",
+    "names": {
+      "sr": "Srpski",
+      "en": "English"
+    }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme_label": "Theme",
+    "theme": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "now_light": "The light theme is on right now.",
+    "now_dark": "The dark theme is on right now."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "enable": "Turn on notifications",
+    "enabling": "Turning on…",
+    "send_test": "Send a test notification",
+    "sending": "Sending…",
+    "state": {
+      "loading": "Loading…",
+      "error": "Device details are not available right now.",
+      "enabled": "On for this device.",
+      "unconfigured": "Allowed, but sending notifications is not set up for this app yet.",
+      "unregistered": "Allowed, but this device is not registered for notifications yet.",
+      "disabled": "Off on this device.",
+      "blocked": "Off. Turn them on in the phone's settings."
+    }
+  },
+  "avatar": {
+    "menu_title": "Profile picture",
+    "take_photo": "Take photo",
+    "choose": "Choose from library",
+    "remove": "Remove picture",
+    "change": "Change profile picture",
+    "remove_title": "Remove profile picture?",
+    "remove_message": "The first letter of your name will be shown instead.",
+    "remove_confirm": "Remove",
+    "camera_blocked_title": "Camera access is not allowed",
+    "camera_blocked_message": "Allow the app to use the camera in the phone's settings.",
+    "open_settings": "Open Settings",
+    "too_small": "The picture must be at least 64x64 pixels.",
+    "wrong_type": "JPEG, PNG, WebP and GIF are allowed.",
+    "too_large": "The picture may be at most 5 MB.",
+    "unusable": "This picture cannot be used."
+  },
+  "update_required": {
+    "title": "Update required",
+    "version": "Version {{version}} can no longer be used.",
+    "this_version": "This version can no longer be used.",
+    "install": "Install the latest version to continue.",
+    "no_store": "The latest version is not in the store yet.",
+    "update": "Update"
+  }
+}

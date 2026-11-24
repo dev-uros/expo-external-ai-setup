@@ -23,7 +23,7 @@ beforeEach(() => {
 test('registering without a token leaves the stored one alone — the key is not sent', async () => {
   await registerDevice();
 
-  expect(requestMock).toHaveBeenCalledWith('/auth/device', { method: 'PUT', body: handset });
+  expect(requestMock).toHaveBeenCalledWith('/mobile/v1/device', { method: 'PUT', body: handset });
 });
 
 test.each([
@@ -32,7 +32,7 @@ test.each([
 ])('registering with a token %s', async (_name, token) => {
   await registerDevice(token);
 
-  expect(requestMock).toHaveBeenCalledWith('/auth/device', {
+  expect(requestMock).toHaveBeenCalledWith('/mobile/v1/device', {
     method: 'PUT',
     body: { ...handset, expo_push_notification_token: token },
   });
@@ -41,7 +41,7 @@ test.each([
 test('the current device is parsed', async () => {
   const result = await currentDevice();
 
-  expect(requestMock).toHaveBeenCalledWith('/auth/device');
+  expect(requestMock).toHaveBeenCalledWith('/mobile/v1/device');
   expect(result.data).toEqual(device);
 });
 
@@ -56,6 +56,6 @@ test('a test push returns only the message', async () => {
 
   const result = await sendTestPush();
 
-  expect(requestMock).toHaveBeenCalledWith('/auth/device/test-push', { method: 'POST' });
+  expect(requestMock).toHaveBeenCalledWith('/mobile/v1/device/test-push', { method: 'POST' });
   expect(result.message).toBe('Probno obaveštenje je poslato.');
 });

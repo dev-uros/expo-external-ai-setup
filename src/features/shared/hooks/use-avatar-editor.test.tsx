@@ -8,6 +8,7 @@ import { ApiError } from '@/lib/http';
 import { removeAvatar, uploadAvatar } from '@/features/shared/api/avatar';
 import { useAvatarEditor } from '@/features/shared/hooks/use-avatar-editor';
 import type { User } from '@/features/shared/schemas/user';
+import { makeUser } from '@/features/shared/testing/fixtures';
 import { useSessionStore } from '@/features/shared/stores/session';
 import { useToastStore } from '@/features/shared/stores/toast';
 
@@ -27,18 +28,7 @@ const picker = ImagePicker as jest.Mocked<typeof ImagePicker>;
 const uploadMock = uploadAvatar as jest.MockedFunction<typeof uploadAvatar>;
 const removeMock = removeAvatar as jest.MockedFunction<typeof removeAvatar>;
 
-const user: User = {
-  id: 4,
-  name: 'Ana',
-  surname: 'Nikolić',
-  email: 'ana@firma.com',
-  role: 'user',
-  avatar_url: null,
-  deactivated_at: null,
-  email_verified_at: '2026-01-01T10:00:00+00:00',
-  created_at: '2026-01-01T10:00:00+00:00',
-  updated_at: '2026-01-01T10:00:00+00:00',
-};
+const user: User = makeUser();
 
 const photo = {
   uri: 'file:///cache/cropped.jpg',
@@ -92,7 +82,7 @@ describe('choosing from the library', () => {
 
     await act(() => editor.current.chooseFromLibrary());
 
-    expect(uploadMock).toHaveBeenCalledWith(4, photo);
+    expect(uploadMock).toHaveBeenCalledWith(photo);
     await waitFor(() => expect(useSessionStore.getState().user).toEqual(updated));
     expect(useToastStore.getState().toast?.message).toBe('Profilna slika je ažurirana.');
   });
@@ -151,7 +141,7 @@ describe('taking a photo', () => {
     expect(picker.launchCameraAsync).toHaveBeenCalledWith(
       expect.objectContaining({ cameraType: 'front', allowsEditing: true })
     );
-    expect(uploadMock).toHaveBeenCalledWith(4, photo);
+    expect(uploadMock).toHaveBeenCalledWith(photo);
   });
 
   test('a refusal the system will ask about again just does nothing', async () => {
@@ -202,7 +192,7 @@ describe('removing the picture', () => {
 
     await act(() => editor.current.confirmRemove());
 
-    expect(removeMock).toHaveBeenCalledWith(4);
+    expect(removeMock).toHaveBeenCalledWith();
     await waitFor(() =>
       expect(useToastStore.getState().toast?.message).toBe('Profilna slika je uklonjena.')
     );

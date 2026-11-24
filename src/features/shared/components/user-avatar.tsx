@@ -7,22 +7,22 @@ import { usePalette } from '@/features/shared/hooks/use-palette';
 import { font } from '@/features/shared/utils/typography';
 
 interface UserAvatarProps {
+  /** What the person is called — the label, and the initial when there is no picture. */
   name: string;
-  surname: string;
   /** From the API; `null` means the user has no picture. */
   url: string | null;
   size?: number;
 }
 
 /**
- * The profile picture, or the user's initials when there is none — or when the picture fails
+ * The profile picture, or the person's initial when there is none — or when the picture fails
  * to load, so a broken URL never leaves an empty circle.
  */
-export function UserAvatar({ name, surname, url, size = 64 }: UserAvatarProps) {
+export function UserAvatar({ name, url, size = 64 }: UserAvatarProps) {
   const palette = usePalette();
   const [failed, setFailed] = useState(false);
   const circle = { width: size, height: size, borderRadius: size / 2 };
-  const label = `${name} ${surname}`;
+  const label = name;
 
   if (url !== null && !failed) {
     return (
@@ -46,7 +46,7 @@ export function UserAvatar({ name, surname, url, size = 64 }: UserAvatarProps) {
       <Text
         style={[styles.initials, { color: palette.avatarText, fontSize: size * 0.38 }]}
         allowFontScaling={false}>
-        {initials(name, surname)}
+        {initials(name)}
       </Text>
     </View>
   );

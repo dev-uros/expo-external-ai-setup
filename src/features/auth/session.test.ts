@@ -7,6 +7,7 @@ import { create } from '@/lib/zustand';
 import { endSession, restoreSession, startSession } from '@/features/auth/session';
 import { useSessionStore } from '@/features/shared/stores/session';
 import type { User } from '@/features/shared/schemas/user';
+import { makeUser } from '@/features/shared/testing/fixtures';
 
 jest.mock('@/lib/secure-store', () => ({
   readToken: jest.fn(),
@@ -23,18 +24,7 @@ jest.mock('@/lib/http', () => ({
 const readTokenMock = readToken as jest.MockedFunction<typeof readToken>;
 const requestMock = request as jest.MockedFunction<typeof request>;
 
-const user: User = {
-  id: 1,
-  name: 'Ana',
-  surname: 'Anić',
-  email: 'ana@firma.com',
-  role: 'admin',
-  avatar_url: null,
-  deactivated_at: null,
-  email_verified_at: '2026-01-01T10:00:00+00:00',
-  created_at: '2026-01-01T10:00:00+00:00',
-  updated_at: '2026-01-01T10:00:00+00:00',
-};
+const user: User = makeUser();
 
 /** A feature store, to prove signing out wipes every store made through `@/lib/zustand`. */
 const useDraftStore = create<{ draft: string }>(() => ({ draft: '' }));
@@ -92,13 +82,13 @@ test('launch without a token goes straight to signed out', async () => {
   expect(useSessionStore.getState().status).toBe('signedOut');
 });
 
-test('launch with a valid token checks it with /auth/me and signs in', async () => {
+test('launch with a valid token checks it with /mobile/v1/me and signs in', async () => {
   readTokenMock.mockResolvedValueOnce('stored');
   requestMock.mockResolvedValueOnce({ message: 'Podaci o nalogu.', data: user });
 
   await restoreSession();
 
-  expect(requestMock).toHaveBeenCalledWith('/auth/me');
+  expect(requestMock).toHaveBeenCalledWith('/mobile/v1/me');
   expect(useSessionStore.getState()).toMatchObject({ status: 'signedIn', user });
 });
 

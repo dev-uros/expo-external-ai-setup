@@ -1,4 +1,5 @@
 import { ApiError } from '@/lib/http';
+import { t } from '@/lib/i18n';
 
 /**
  * How a failed request is shown on a form.
@@ -18,11 +19,13 @@ export interface FormFeedback {
 export const NO_FEEDBACK: FormFeedback = { message: null, fields: {} };
 
 /** Last resort: something was thrown that is not an API error at all. */
-export const GENERIC_MESSAGE = 'Došlo je do neočekivane greške. Pokušajte ponovo.';
+export function genericMessage(): string {
+  return t('errors.unexpected');
+}
 
 export function toFormFeedback(error: unknown, formFields: readonly string[]): FormFeedback {
   if (error === null || error === undefined) return NO_FEEDBACK;
-  if (!(error instanceof ApiError)) return { message: GENERIC_MESSAGE, fields: {} };
+  if (!(error instanceof ApiError)) return { message: genericMessage(), fields: {} };
   if (error.errors === undefined) return { message: error.message, fields: {} };
 
   const fields: Partial<Record<string, string>> = {};
@@ -47,5 +50,5 @@ export function toFormFeedback(error: unknown, formFields: readonly string[]): F
 
 /** For places with no form — a banner, an alert. */
 export function toDisplayMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : GENERIC_MESSAGE;
+  return error instanceof ApiError ? error.message : genericMessage();
 }

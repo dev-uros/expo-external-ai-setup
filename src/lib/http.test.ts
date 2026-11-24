@@ -2,21 +2,23 @@ import { fetch } from 'expo/fetch';
 
 import {
   ApiError,
-  UNREACHABLE_MESSAGE,
+  unreachableMessage,
   request,
   setAuthToken,
   setUnauthorizedHandler,
 } from '@/lib/http';
+import { changeLanguage } from '@/lib/i18n';
 
 jest.mock('expo/fetch', () => ({ fetch: jest.fn() }));
 
 const fetchMock = fetch as jest.MockedFunction<typeof fetch>;
 
-function respond(status: number, body: unknown) {
+function respond(status: number, body: unknown, headers: Record<string, string> = {}) {
   fetchMock.mockResolvedValueOnce({
     status,
     ok: status >= 200 && status < 300,
     json: async () => body,
+    headers: { get: (name: string) => headers[name] ?? null },
   } as unknown as Awaited<ReturnType<typeof fetch>>);
 }
 
@@ -50,6 +52,7 @@ test('sends JSON with the API headers and returns the parsed body', async () => 
   expect(init?.body).toBe('{"a":1}');
   expect(init?.headers).toMatchObject({
     Accept: 'application/json',
+    'Accept-Language': 'sr',
     'Content-Type': 'application/json',
   });
   expect((init?.headers as Record<string, string>)['X-Request-Id']).toEqual(expect.any(String));
@@ -113,7 +116,7 @@ test('no answer at all becomes status 0 with a message for the user', async () =
   const error = await caught(request('/auth/me'));
 
   expect(error.status).toBe(0);
-  expect(error.message).toBe(UNREACHABLE_MESSAGE);
+  expect(error.message).toBe(unreachableMessage());
   expect(error.requestId).toEqual(expect.any(String));
 });
 
@@ -127,4 +130,25 @@ test('a FormData body goes out as-is, with no JSON content type', async () => {
   const init = fetchMock.mock.calls[0]![1];
   expect(init?.body).toBe(form);
   expect(init?.headers).not.toHaveProperty('Content-Type');
+});
+
+test('asks in the app language, not the phone one', async () => {
+  changeLanguage('en');
+  respond(200, {});
+
+  await request('/mobile/v1/me');
+
+  expect((fetchMock.mock.calls[0]![1]?.headers as Record<string, string>)['Accept-Language']).toBe(
+    'en'
+  );
+  changeLanguage('sr');
+});
+
+test('carries the wait of a 429 from Retry-After', async () => {
+  respond(429, { message: 'Sačekajte.' }, { 'Retry-After': '42' });
+
+  const error = await caught(request('/mobile/v1/auth/email/sign-in-code', { method: 'POST' }));
+
+  expect(error.status).toBe(429);
+  expect(error.retryAfter).toBe(42);
 });

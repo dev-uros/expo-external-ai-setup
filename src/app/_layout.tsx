@@ -7,10 +7,13 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
+// First of the app's own modules: every screen below reads its strings from i18next.
+import '@/lib/i18n';
 import { showNotificationsInForeground } from '@/lib/notifications';
 import { queryClient } from '@/lib/query-client';
 import { initSentry, wrapRoot } from '@/lib/sentry';
 import { applySavedTheme } from '@/features/appearance/stores/appearance';
+import { applySavedLanguage } from '@/features/language/stores/language';
 import { UpdateRequiredGate } from '@/features/app-version/components/update-required-gate';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
 import { ToastHost } from '@/features/shared/components/toast-host';
@@ -24,8 +27,9 @@ void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 300, fade: true });
 installUnauthorizedHandler();
 showNotificationsInForeground();
-// Synchronous read, so the chosen theme is in place before the first frame.
+// Synchronous reads, so the chosen theme and language are in place before the first frame.
 applySavedTheme();
+applySavedLanguage();
 
 /**
  * The last line of defence: an error that escapes every screen boundary — in a layout or a
@@ -74,15 +78,15 @@ function RootNavigator() {
 
   // Nothing is decided while the stored token is being checked — the native splash screen covers
   // that moment. Deciding early would treat the user as signed out, redirect a launch URL
-  // (`/users/7` from a link or a notification) to the login, and lose it.
+  // (a link or a notification) to the login, and lose it.
   if (status === 'loading') return null;
 
   const signedIn = status === 'signedIn';
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      {/* `/` belongs to (app), so a signed-out launch needs an explicit way to the login. */}
-      <Stack.Protected guard={signedIn} redirectTo="/login">
+      {/* `/` belongs to (app), so a signed-out launch needs an explicit way to the welcome screen. */}
+      <Stack.Protected guard={signedIn} redirectTo="/welcome">
         <Stack.Screen name="(app)" />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn} redirectTo="/">

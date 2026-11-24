@@ -1,0 +1,60 @@
+# An address without an account is taken to registration — username suggested from the address,
+# optional name — and the code makes the account. Deleting it (Settings, after a confirmation)
+# signs out and frees the address, so the flow ends where it started and can run again.
+#
+# The address is in MOBILE_DEMO_EMAILS without an account (or the flow deletes it first): its
+# registration takes the fixed code and is never mailed.
+appId: com.example.customers.dev
+tags: [auth, account]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- tapOn:
+    id: 'welcome-email'
+- inputText: 'maestro.register@example.com'
+- tapOn: 'Nastavi'
+- extendedWaitUntil:
+    visible: 'Novi nalog|Poslali smo šestocifreni kod na.*'
+    timeout: 15000
+
+# Left over from a run that died half-way (or from `mobile:demo-accounts`): delete it first.
+- runFlow:
+    when:
+      visible: 'Poslali smo šestocifreni kod na.*'
+    file: ../shared/delete-signed-in-account.yaml
+    env:
+      SIGN_IN: 'yes'
+- runFlow:
+    when:
+      visible: 'Unesite email adresu i poslaćemo vam kod za prijavu.'
+    commands:
+      - tapOn:
+          id: 'welcome-email'
+      - eraseText: 100
+      - inputText: 'maestro.register@example.com'
+      - tapOn: 'Nastavi'
+
+- extendedWaitUntil:
+    visible: 'Novi nalog'
+    timeout: 15000
+- assertVisible: 'maestro.register'
+- tapOn:
+    id: 'register-first-name'
+- inputText: 'Maestro'
+- hideKeyboard
+- runFlow:
+    file: ../shared/toggle-switch.yaml
+    env:
+      LABEL: 'Prikaži ime umesto korisničkog imena'
+      ID: 'register-display-name'
+- tapOn: 'Pošalji kod'
+- extendedWaitUntil:
+    visible: 'Poslali smo šestocifreni kod na.*'
+    timeout: 15000
+- tapOn:
+    id: 'code-input'
+- inputText: '424242'
+- extendedWaitUntil:
+    visible: 'Ćao, Maestro'
+    timeout: 20000
+
+- runFlow: ../shared/delete-signed-in-account.yaml

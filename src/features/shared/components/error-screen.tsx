@@ -1,6 +1,7 @@
 import type { ErrorBoundaryProps } from 'expo-router';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ScreenMessage } from '@/features/shared/components/screen-message';
@@ -17,6 +18,7 @@ import { reportError } from '@/lib/sentry';
  */
 export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
   const palette = usePalette();
+  const { t } = useTranslation();
 
   useEffect(() => {
     reportError(error);
@@ -30,13 +32,9 @@ export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
       <ScreenMessage
         icon={{ ios: 'exclamationmark.triangle', android: 'error', web: 'error' }}
         testID="error-screen"
-        title="Nešto nije u redu"
-        message={
-          __DEV__
-            ? error.message
-            : 'Došlo je do neočekivane greške. Pokušajte ponovo, a ako se ponovi, javite nam.'
-        }
-        action={{ label: 'Pokušaj ponovo', onPress: () => void retry() }}
+        title={t('errors.screen_title')}
+        message={__DEV__ ? error.message : t('errors.screen_message')}
+        action={{ label: t('common.retry'), onPress: () => void retry() }}
       />
     </ScrollView>
   );

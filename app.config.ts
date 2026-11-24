@@ -21,6 +21,12 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * - `SENTRY_ORG`, `SENTRY_PROJECT`: the Sentry project release builds upload source maps and
  *   debug symbols to. `SENTRY_AUTH_TOKEN` (an EAS secret) allows the upload; without all three a
  *   release build skips the upload instead of failing. See docs/sentry.md.
+ * - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: Google Sign-In's iOS client for **this variant's** bundle
+ *   id. Its reversed form is the URL scheme Google returns to; without it the Google plugin is left
+ *   out and the app hides the button. `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is read by the app only.
+ * - `EXPO_PUBLIC_APPLE_SIGN_IN`: `true` turns on Sign in with Apple (the entitlement, and the
+ *   button on iOS). Off by default, because an App ID without the capability cannot be signed
+ *   with the entitlement. See docs/sign-in.md.
  */
 
 /**
@@ -71,7 +77,24 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
   ];
 
-  const scheme = typeof config.scheme === 'string' ? config.scheme : 'expo-mobile-ai-setup';
+  const scheme = typeof config.scheme === 'string' ? config.scheme : 'expo-external-ai-setup';
+
+  // Google returns to the app through a URL scheme made from the iOS client id, and each variant
+  // has its own client (its own bundle id). No client: no plugin, and the app hides the button.
+  const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || undefined;
+  const googlePlugins: [string, unknown][] = googleIosClientId
+    ? [
+        [
+          '@react-native-google-signin/google-signin',
+          { iosUrlScheme: reversedClientId(googleIosClientId) },
+        ],
+      ]
+    : [];
+  // The Apple plugin writes the Sign in with Apple entitlement whatever `usesAppleSignIn` says, and
+  // an App ID without that capability cannot be signed with it — so the plugin is added only when
+  // the project has turned Apple on.
+  const appleSignIn = process.env.EXPO_PUBLIC_APPLE_SIGN_IN === 'true';
+  const applePlugins: string[] = appleSignIn ? ['expo-apple-authentication'] : [];
 
   // iOS push goes through Apple's sandbox only for a development-signed app; a preview build
   // (ad hoc, internal distribution) is signed like production and gets production tokens.
@@ -92,7 +115,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
-    plugins: [...plugins, devClientPlugin, sentryPlugin],
+    plugins: [...plugins, ...googlePlugins, ...applePlugins, devClientPlugin, sentryPlugin],
     // Over-the-air updates (EAS Update, docs/updates.md). The build's channel comes from its
     // eas.json profile. Without a project id there is nowhere to fetch from: the app runs the JS
     // it was built with.
@@ -106,14 +129,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     updates: projectId
       ? { url: `https://u.expo.dev/${projectId}`, enabled: true }
       : { enabled: false },
-    name: `${config.name ?? 'Backoffice'}${nameSuffix}`,
+    name: `${config.name ?? 'Customers'}${nameSuffix}`,
     // One EAS project for all three: the slug stays the same.
-    slug: config.slug ?? 'expo-mobile-ai-setup',
+    slug: config.slug ?? 'expo-external-ai-setup',
     scheme: `${scheme}${schemeSuffix}`,
     ...(owner ? { owner } : {}),
     ios: {
       ...config.ios,
       bundleIdentifier: `${config.ios?.bundleIdentifier}${idSuffix}`,
+      usesAppleSignIn: appleSignIn,
     },
     android: {
       ...config.android,
@@ -127,3 +151,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
   };
 };
+
+/** `123-abc.apps.googleusercontent.com` → `com.googleusercontent.apps.123-abc`. */
+function reversedClientId(clientId: string): string {
+  return clientId.split('.').reverse().join('.');
+}

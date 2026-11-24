@@ -1,0 +1,36 @@
+# The theme is chosen in Settings — system, light or dark — applied at once and said in words.
+# Ends on "Sistemska" so the next flow starts as the device is.
+appId: com.example.customers.dev
+tags: [settings]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: maestro.theme@example.com
+- extendedWaitUntil:
+    visible: 'Ćao, maestro.theme_demo'
+    timeout: 20000
+- tapOn: 'Podešavanja'
+- scrollUntilVisible:
+    element: 'Izgled'
+    direction: DOWN
+
+- tapOn: 'Tamna'
+- assertVisible: 'Trenutno je uključena tamna tema.'
+- tapOn: 'Svetla'
+- assertVisible: 'Trenutno je uključena svetla tema.'
+
+# The choice survives a restart of the app.
+- stopApp
+- runFlow: ../shared/open-dev-server.yaml
+- extendedWaitUntil:
+    visible: 'Ćao, maestro.theme_demo'
+    timeout: 30000
+- tapOn: 'Podešavanja'
+- scrollUntilVisible:
+    element: 'Izgled'
+    direction: DOWN
+- assertVisible: 'Trenutno je uključena svetla tema.'
+
+- tapOn: 'Sistemska'

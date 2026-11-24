@@ -1,7 +1,5 @@
-# Maestro workspace. Only the feature folders are flows; shared/ and scripts/ are helpers.
+# Maestro workspace. Only the feature folders are flows; shared/ holds helpers.
 flows:
   - auth/*
-  - profile/*
-  - users/*
-  - home/*
+  - settings/*
   - notifications/*

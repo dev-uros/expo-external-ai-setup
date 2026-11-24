@@ -1,0 +1,38 @@
+# The language: Serbian by default, English chosen on the welcome screen or in Settings. The
+# whole app switches at once — the server's own messages too — and the choice survives a restart.
+# Ends in Serbian so the next flow starts from the default.
+appId: com.example.customers.dev
+tags: [settings]
+---
+- runFlow: ../shared/launch-signed-out.yaml
+- tapOn: 'English'
+- assertVisible: 'Enter your email address and we will send you a sign-in code.'
+- tapOn: 'Srpski'
+- assertVisible: 'Unesite email adresu i poslaćemo vam kod za prijavu.'
+
+- runFlow:
+    file: ../shared/sign-in.yaml
+    env:
+      EMAIL: maestro.lang@example.com
+- extendedWaitUntil:
+    visible: 'Ćao, maestro.lang_demo'
+    timeout: 20000
+- tapOn: 'Podešavanja'
+- tapOn: 'English'
+- extendedWaitUntil:
+    visible: 'Appearance'
+    timeout: 10000
+- tapOn: 'Home'
+- assertVisible: 'Hi, maestro.lang_demo'
+
+- stopApp
+- runFlow: ../shared/open-dev-server.yaml
+- extendedWaitUntil:
+    visible: 'Hi, maestro.lang_demo'
+    timeout: 30000
+
+- tapOn: 'Settings'
+- tapOn: 'Srpski'
+- extendedWaitUntil:
+    visible: 'Izgled'
+    timeout: 10000

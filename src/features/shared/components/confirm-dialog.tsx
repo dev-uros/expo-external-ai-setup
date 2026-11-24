@@ -1,10 +1,8 @@
 import { useEffect, useEffectEvent } from 'react';
 import { Alert } from 'react-native';
 
-import {
-  DEFAULT_CANCEL_LABEL,
-  type ConfirmDialogProps,
-} from '@/features/shared/components/confirm-dialog.types';
+import { t } from '@/lib/i18n';
+import type { ConfirmDialogProps } from '@/features/shared/components/confirm-dialog.types';
 
 /**
  * A yes/no question in the platform's own dialog. On iOS this is the system alert
@@ -16,7 +14,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
-  cancelLabel = DEFAULT_CANCEL_LABEL,
+  cancelLabel = t('common.cancel'),
   destructive = false,
   onConfirm,
   onCancel,

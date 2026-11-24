@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Customers uses the camera so you can take a profile picture.",
+    "NSPhotoLibraryUsageDescription": "Customers reads the photo you pick to set it as your profile picture."
+  }
+}

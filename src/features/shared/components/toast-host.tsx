@@ -4,6 +4,7 @@ import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import Animated, { Easing, FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/lib/i18n';
 import { usePalette } from '@/features/shared/hooks/use-palette';
 import { useToastStore, type Toast } from '@/features/shared/stores/toast';
 import { font } from '@/features/shared/utils/typography';
@@ -47,7 +48,7 @@ function ToastView({ toast }: { toast: Toast }) {
       accessible
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
-      accessibilityHint="Dodirnite da zatvorite"
+      accessibilityHint={t('common.tap_to_dismiss')}
       // A tap dismisses it, so it never sits over the header buttons longer than wanted.
       onTouchEnd={() => hide(toast.id)}
       style={[

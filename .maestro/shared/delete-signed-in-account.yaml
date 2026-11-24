@@ -1,0 +1,26 @@
+# Helper (shared/ is not in config.yaml's flows): with SIGN_IN
+# set, enters the fixed code on the code screen first; then deletes the signed-in account.
+appId: com.example.customers.dev
+---
+- runFlow:
+    when:
+      true: ${SIGN_IN == 'yes'}
+    commands:
+      - tapOn:
+          id: 'code-input'
+      - inputText: '424242'
+      - extendedWaitUntil:
+          visible: 'Ćao, .*'
+          timeout: 20000
+- tapOn: 'Podešavanja'
+- scrollUntilVisible:
+    element:
+      id: 'delete-account'
+    direction: DOWN
+- tapOn:
+    id: 'delete-account'
+- assertVisible: 'Brisanje naloga'
+- tapOn: 'Obriši zauvek'
+- extendedWaitUntil:
+    visible: 'Unesite email adresu i poslaćemo vam kod za prijavu.'
+    timeout: 20000

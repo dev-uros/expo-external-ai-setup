@@ -1,10 +1,17 @@
-# Fills the form and submits it. Inputs: EMAIL, PASSWORD.
-appId: com.example.backoffice.dev
+# Signs in with an emailed code. Inputs: EMAIL, and optionally CODE.
+#
+# The accounts are the backend's demo accounts (`MOBILE_DEMO_EMAILS`, `php artisan
+# mobile:demo-accounts`): they are never mailed and take the fixed `MOBILE_DEMO_CODE` (424242
+# locally), so no flow has to read an inbox.
+appId: com.example.customers.dev
 ---
 - tapOn:
-    id: 'login-email'
+    id: 'welcome-email'
 - inputText: ${EMAIL}
+- tapOn: 'Nastavi'
+- extendedWaitUntil:
+    visible: 'Poslali smo šestocifreni kod na.*'
+    timeout: 15000
 - tapOn:
-    id: 'login-password'
-- inputText: ${PASSWORD}
-- tapOn: 'Prijavi se'
+    id: 'code-input'
+- inputText: ${CODE || '424242'}

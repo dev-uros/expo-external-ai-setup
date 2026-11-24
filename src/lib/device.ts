@@ -59,6 +59,11 @@ export function installedAppVersion(): string | null {
   return Application.nativeApplicationVersion;
 }
 
+/** The build number of the installed app (`CFBundleVersion` / `versionCode`). */
+export function installedBuildVersion(): string | null {
+  return Application.nativeBuildVersion;
+}
+
 /** The platform, in the API's terms. */
 export function devicePlatform(): 'ios' | 'android' {
   return Platform.OS === 'ios' ? 'ios' : 'android';

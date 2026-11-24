@@ -1,40 +1,44 @@
 import { MenuView } from '@expo/ui/community/menu';
 import { SymbolView } from 'expo-symbols';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { UserAvatar } from '@/features/shared/components/user-avatar';
-import type { useAvatarEditor } from '@/features/shared/hooks/use-avatar-editor';
+import type { AvatarEditorState } from '@/features/shared/hooks/use-avatar-picker';
 import { ConfirmDialog } from '@/features/shared/components/confirm-dialog';
 import { usePalette } from '@/features/shared/hooks/use-palette';
-import type { User } from '@/features/shared/schemas/user';
 
 /**
  * The profile picture, editable: a tap opens the platform's own menu — take a photo, choose one,
  * remove the current one. While a change is being saved the avatar shows progress over itself.
- * The screen owns `editor` (from `useAvatarEditor`) so it can place the error where it fits.
+ * The screen owns `editor` (`useAvatarEditor`, or `useLocalAvatar` before there is an account)
+ * so it can place the error where it fits.
  */
 export function AvatarEditor({
-  user,
+  name,
+  url,
   editor,
   size = 64,
 }: {
-  user: User;
-  editor: ReturnType<typeof useAvatarEditor>;
+  name: string;
+  url: string | null;
+  editor: AvatarEditorState;
   size?: number;
 }) {
   const palette = usePalette();
+  const { t } = useTranslation();
 
   return (
     <>
       <MenuView
-        title="Profilna slika"
+        title={t('avatar.menu_title')}
         testID="avatar-menu"
         actions={[
-          { id: 'camera', title: 'Fotografiši', image: 'camera' },
-          { id: 'library', title: 'Izaberi iz galerije', image: 'photo.on.rectangle' },
+          { id: 'camera', title: t('avatar.take_photo'), image: 'camera' },
+          { id: 'library', title: t('avatar.choose'), image: 'photo.on.rectangle' },
           {
             id: 'remove',
-            title: 'Ukloni sliku',
+            title: t('avatar.remove'),
             image: 'trash',
             attributes: { destructive: true, hidden: !editor.canRemove },
           },
@@ -47,9 +51,9 @@ export function AvatarEditor({
         <View
           accessible
           accessibilityRole="button"
-          accessibilityLabel="Promeni profilnu sliku"
+          accessibilityLabel={t('avatar.change')}
           accessibilityState={{ busy: editor.isPending }}>
-          <UserAvatar name={user.name} surname={user.surname} url={user.avatar_url} size={size} />
+          <UserAvatar name={name} url={url} size={size} />
           {editor.isPending ? (
             <View style={[styles.overlay, { borderRadius: size / 2 }]}>
               <ActivityIndicator color="#FFFFFF" />
@@ -68,18 +72,18 @@ export function AvatarEditor({
 
       <ConfirmDialog
         visible={editor.dialog === 'confirmRemove'}
-        title="Ukloniti profilnu sliku?"
-        message="Umesto slike biće prikazani vaši inicijali."
-        confirmLabel="Ukloni"
+        title={t('avatar.remove_title')}
+        message={t('avatar.remove_message')}
+        confirmLabel={t('avatar.remove_confirm')}
         destructive
         onConfirm={editor.confirmRemove}
         onCancel={editor.dismissDialog}
       />
       <ConfirmDialog
         visible={editor.dialog === 'cameraBlocked'}
-        title="Pristup kameri nije dozvoljen"
-        message="Dozvolite aplikaciji pristup kameri u podešavanjima telefona."
-        confirmLabel="Otvori podešavanja"
+        title={t('avatar.camera_blocked_title')}
+        message={t('avatar.camera_blocked_message')}
+        confirmLabel={t('avatar.open_settings')}
         onConfirm={editor.openSettings}
         onCancel={editor.dismissDialog}
       />

@@ -1,6 +1,7 @@
 import * as SplashScreen from 'expo-splash-screen';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView, StyleSheet } from 'react-native';
 
 import { installedAppVersion } from '@/lib/device';
@@ -31,6 +32,7 @@ function UpdateRequiredScreen({
   storeUrl: string | null;
 }) {
   const palette = usePalette();
+  const { t } = useTranslation();
 
   // The navigator that normally hides the splash screen is not mounted.
   useEffect(() => {
@@ -45,18 +47,16 @@ function UpdateRequiredScreen({
       <ScreenMessage
         testID="update-required"
         icon={{ ios: 'arrow.down.app', android: 'system_update', web: 'system_update' }}
-        title="Potrebno je ažuriranje"
+        title={t('update_required.title')}
         message={[
           installed
-            ? `Verzija ${installed} se više ne može koristiti.`
-            : 'Ova verzija se više ne može koristiti.',
-          storeUrl
-            ? 'Instalirajte najnoviju verziju da biste nastavili.'
-            : 'Obratite se administratoru za najnoviju verziju.',
+            ? t('update_required.version', { version: installed })
+            : t('update_required.this_version'),
+          storeUrl ? t('update_required.install') : t('update_required.no_store'),
         ].join(' ')}
         action={
           storeUrl
-            ? { label: 'Ažuriraj', onPress: () => void Linking.openURL(storeUrl) }
+            ? { label: t('update_required.update'), onPress: () => void Linking.openURL(storeUrl) }
             : undefined
         }
       />

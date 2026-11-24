@@ -1,3 +1,6 @@
+// Initialises i18next (Serbian) before any component asks `useTranslation` for it, as the root
+// layout does in the app.
+import '@/lib/i18n';
 // FlashList measures its native views; under Jest it gets fixed sizes instead.
 import '@shopify/flash-list/jestSetup';
 
@@ -44,6 +47,7 @@ jest.mock('@/lib/device', () => ({
     osVersion: '27.2',
   })),
   installedAppVersion: jest.fn(() => '1.0.0'),
+  installedBuildVersion: jest.fn(() => '1'),
   devicePlatform: jest.fn(() => 'ios'),
 }));
 

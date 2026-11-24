@@ -1,6 +1,8 @@
 import { uuid } from 'expo';
 import { fetch } from 'expo/fetch';
 
+import { currentLanguage, t } from '@/lib/i18n';
+
 /**
  * The one HTTP client. Everything that talks to the API goes through `request`, so the base
  * URL, headers, the bearer token and error shaping are decided in exactly one file.
@@ -18,7 +20,9 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const TIMEOUT_MS = 15_000;
 
 /** Shown when no answer arrived at all — the backend never had a chance to write a message. */
-export const UNREACHABLE_MESSAGE = 'Server trenutno nije dostupan. Pokušajte ponovo.';
+export function unreachableMessage(): string {
+  return t('errors.unreachable');
+}
 
 /**
  * A failed API call, normalised.
@@ -33,18 +37,22 @@ export class ApiError extends Error {
   readonly errors: Record<string, string[]> | undefined;
   /** `X-Request-Id`, generated here so it exists even when no response arrives. */
   readonly requestId: string;
+  /** Seconds to wait, from `Retry-After` — on a 429 from a throttle or the code cooldown. */
+  readonly retryAfter: number | undefined;
 
   constructor(
     status: number,
     message: string,
     requestId: string,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
+    retryAfter?: number
   ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.requestId = requestId;
     this.errors = errors;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -80,6 +88,8 @@ export async function request(path: string, options: RequestOptions = {}): Promi
   const sentToken = token;
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    // The backend answers — messages, validation — in the app's language, not the phone's.
+    'Accept-Language': currentLanguage(),
     'X-Request-Id': requestId,
   };
   const isForm = options.body instanceof FormData;
@@ -105,7 +115,7 @@ export async function request(path: string, options: RequestOptions = {}): Promi
     });
   } catch {
     // No answer: network down, timeout, server not running.
-    throw new ApiError(0, UNREACHABLE_MESSAGE, requestId);
+    throw new ApiError(0, unreachableMessage(), requestId);
   } finally {
     clearTimeout(timeout);
   }
@@ -120,13 +130,19 @@ export async function request(path: string, options: RequestOptions = {}): Promi
     const body = isRecord(payload) ? payload : {};
     throw new ApiError(
       response.status,
-      typeof body.message === 'string' ? body.message : 'Došlo je do greške.',
+      typeof body.message === 'string' ? body.message : t('errors.generic'),
       requestId,
-      isFieldErrors(body.errors) ? body.errors : undefined
+      isFieldErrors(body.errors) ? body.errors : undefined,
+      retryAfterOf(response.headers.get('Retry-After'))
     );
   }
 
   return payload;
+}
+
+function retryAfterOf(header: string | null): number | undefined {
+  const seconds = header === null ? NaN : Number.parseInt(header, 10);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

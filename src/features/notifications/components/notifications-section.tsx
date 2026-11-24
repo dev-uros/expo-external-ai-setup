@@ -1,4 +1,5 @@
 import { Button, Host, Text as UIText } from '@expo/ui';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useNotificationsSection } from '@/features/notifications/hooks/use-notifications-section';
@@ -12,13 +13,14 @@ import { font } from '@/features/shared/utils/typography';
  */
 export function NotificationsSection() {
   const palette = usePalette();
+  const { t } = useTranslation();
   const { status, deviceLine, action, error } = useNotificationsSection();
 
   return (
     <View style={[styles.card, { backgroundColor: palette.cardBackground }]}>
       <View style={styles.heading}>
         <Text accessibilityRole="header" style={[styles.title, { color: palette.label }]}>
-          Obaveštenja
+          {t('notifications.title')}
         </Text>
         {deviceLine ? (
           <Text style={[styles.hint, { color: palette.secondaryLabel }]}>{deviceLine}</Text>
