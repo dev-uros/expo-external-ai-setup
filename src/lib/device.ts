@@ -46,10 +46,20 @@ async function deviceId(): Promise<string> {
 export async function readDeviceInfo(): Promise<DeviceInfo> {
   return {
     id: await deviceId(),
-    platform: Platform.OS === 'ios' ? 'ios' : 'android',
+    platform: devicePlatform(),
     name: Device.modelName ?? Device.deviceName,
     osName: Device.osName,
     manufacturer: Device.manufacturer,
     osVersion: Device.osVersion,
   };
+}
+
+/** The version people see in the store — `version` in app.json, e.g. `1.2.0`. */
+export function installedAppVersion(): string | null {
+  return Application.nativeApplicationVersion;
+}
+
+/** The platform, in the API's terms. */
+export function devicePlatform(): 'ios' | 'android' {
+  return Platform.OS === 'ios' ? 'ios' : 'android';
 }

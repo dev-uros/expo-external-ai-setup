@@ -22,6 +22,14 @@ jest.mock('@/lib/http', () => ({
   request: jest.fn(),
 }));
 
+// The minimum-version check runs in front of everything; it has its own test and lets the app run.
+jest.mock('@/features/app-version/api/app-version', () => ({
+  fetchAppVersionPolicy: jest.fn(async () => ({
+    message: 'OK',
+    data: { minimum_version: null, store_url: null },
+  })),
+}));
+
 const readTokenMock = readToken as jest.MockedFunction<typeof readToken>;
 const requestMock = request as jest.MockedFunction<typeof request>;
 

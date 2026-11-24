@@ -148,17 +148,20 @@ npm run ios      # ili: npm run android
 
 Ukloni dugme.
 
-## EAS Update (kad ga projekat uvede)
+## EAS Update (OTA)
 
-`eas update` ne prolazi kroz native build, pa source map-e ne otprema sam. Posle svakog update-a:
+`eas update` ne prolazi kroz native build, pa source map-e ne otprema sam. Posle svakog update-a
+(`docs/updates.md`):
 
 ```sh
-npx eas-cli@latest update --branch production && npx sentry-expo-upload-sourcemaps dist
+npm run update:production -- --message "…"
+npm run sentry:sourcemaps
 ```
 
-Skripta čita `SENTRY_ORG`, `SENTRY_PROJECT` i `SENTRY_AUTH_TOKEN` iz okruženja. Kad se doda
-`expo-updates`, u `initSentry` je korisno dodati tagove `expo-update-id` i
-`expo-is-embedded-update` — recept je na <https://docs.expo.dev/guides/using-sentry/>.
+Skripta čita `SENTRY_ORG`, `SENTRY_PROJECT` i `SENTRY_AUTH_TOKEN` iz shell-a. Svaka greška nosi tag
+`expo-is-embedded-update` (JS iz build-a ili iz update-a) i, kad je iz update-a,
+`expo-update-id` / `expo-update-group-id` — po tome se u Sentry-ju filtrira da li je problem
+počeo sa određenim update-om.
 
 ## Kad ne radi
 

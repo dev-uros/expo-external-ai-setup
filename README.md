@@ -50,7 +50,7 @@ organization — never a personal account:
 
 | Account                             | For                                   | Without it                               | Setup                                                      |
 | ----------------------------------- | ------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| Expo (organization on expo.dev)     | EAS builds, push tokens               | no push, no EAS builds                   | [`docs/builds.md`](docs/builds.md)                         |
+| Expo (organization on expo.dev)     | EAS builds, push tokens, OTA updates  | no push, no EAS builds, no OTA           | [`docs/builds.md`](docs/builds.md)                         |
 | Firebase project (free)             | push on Android                       | Android gets no push                     | [`docs/push-notifications.md`](docs/push-notifications.md) |
 | Apple Developer (paid)              | push on iOS, TestFlight, App Store    | iOS gets no push, no distribution        | [`docs/push-notifications.md`](docs/push-notifications.md) |
 | Google Play Developer (one-off fee) | Play Store                            | no Play Store release                    | [`docs/builds.md`](docs/builds.md)                         |
@@ -102,6 +102,10 @@ their versions match the SDK.
 - **Crash reports** — Sentry, from release builds only: crashes, screens that fail to render,
   5xx answers (with the request id) and responses the schemas reject. Silent until a project
   has its own Sentry account: [`docs/sentry.md`](docs/sentry.md).
+- **Updates** — over-the-air JS updates per variant (`npm run update:preview` / `update:production`,
+  off until the project has an Expo account), and a required-update screen: an app older than the
+  API's `MOBILE_*_MINIMUM_VERSION` shows only "update required", with a link to the store. Bump
+  `version` in `app.json` with every native change: [`docs/updates.md`](docs/updates.md).
 
 ## Tests
 

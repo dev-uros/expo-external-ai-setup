@@ -11,6 +11,7 @@ import { showNotificationsInForeground } from '@/lib/notifications';
 import { queryClient } from '@/lib/query-client';
 import { initSentry, wrapRoot } from '@/lib/sentry';
 import { applySavedTheme } from '@/features/appearance/stores/appearance';
+import { UpdateRequiredGate } from '@/features/app-version/components/update-required-gate';
 import { ErrorScreen } from '@/features/shared/components/error-screen';
 import { ToastHost } from '@/features/shared/components/toast-host';
 import { installUnauthorizedHandler, restoreSession } from '@/features/auth/session';
@@ -44,7 +45,9 @@ function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <KeyboardProvider>
         <QueryClientProvider client={queryClient}>
-          <RootNavigator />
+          <UpdateRequiredGate>
+            <RootNavigator />
+          </UpdateRequiredGate>
           <ToastHost />
           <StatusBar style="auto" />
         </QueryClientProvider>

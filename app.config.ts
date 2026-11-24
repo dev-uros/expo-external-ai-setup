@@ -14,7 +14,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   means `production`, so nothing that evaluates this file without a variant (an `eas update`,
  *   `eas submit`) can end up with a test app's identity.
  * - `EAS_PROJECT_ID`: the project's id at expo.dev. Without it the app cannot get an Expo push
- *   token, and the profile says that sending is not set up.
+ *   token (the profile says that sending is not set up), and over-the-air updates are off.
  * - `EXPO_OWNER`: the Expo account or organization that owns the project.
  * - `GOOGLE_SERVICES_JSON`: path to `google-services.json` (an EAS file variable on the
  *   builders); locally a `google-services.json` in the project root is picked up on its own.
@@ -93,6 +93,19 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     plugins: [...plugins, devClientPlugin, sentryPlugin],
+    // Over-the-air updates (EAS Update, docs/updates.md). The build's channel comes from its
+    // eas.json profile. Without a project id there is nowhere to fetch from: the app runs the JS
+    // it was built with.
+    //
+    // The runtime version is the app's `version`: an update reaches only builds made from the
+    // same one. A new native package or SDK upgrade means bumping `version` before the next
+    // build — otherwise an update with the new JS could land in an app without its native side.
+    // (`fingerprint` would detect that on its own, but it hashes the evaluated config, and this
+    // one differs between Expo's builders and a laptop — Sentry token, google-services path.)
+    runtimeVersion: { policy: 'appVersion' },
+    updates: projectId
+      ? { url: `https://u.expo.dev/${projectId}`, enabled: true }
+      : { enabled: false },
     name: `${config.name ?? 'Backoffice'}${nameSuffix}`,
     // One EAS project for all three: the slug stays the same.
     slug: config.slug ?? 'expo-mobile-ai-setup',

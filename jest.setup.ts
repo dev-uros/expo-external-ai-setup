@@ -43,6 +43,8 @@ jest.mock('@/lib/device', () => ({
     manufacturer: 'Apple',
     osVersion: '27.2',
   })),
+  installedAppVersion: jest.fn(() => '1.0.0'),
+  devicePlatform: jest.fn(() => 'ios'),
 }));
 
 // Push notifications: not configured (no EAS project), as in the template itself. A test that

@@ -57,6 +57,18 @@ za prodavnicu nije. Posle toga vrati native foldere na dev varijantu:
 npx expo prebuild --clean
 ```
 
+**Disk:** Android release build lokalno kompajlira native kod za sve četiri procesorske
+arhitekture — više GB u `node_modules/**/android/build` i `.cxx` po build-u. Za emulator ili
+telefon dovoljna je jedna (`arm64-v8a` za Apple Silicon emulator i skoro sve telefone):
+
+```sh
+ORG_GRADLE_PROJECT_reactNativeArchitectures=arm64-v8a APP_VARIANT=production npx expo run:android --variant release
+```
+
+Ti folderi, Xcode `~/Library/Developer/Xcode/DerivedData` i stari simulatori/emulatori se smeju
+obrisati kad zatreba mesta — sve se napravi iznova pri sledećem build-u. EAS build-ovi ne troše
+tvoj disk.
+
 ---
 
 ## Na Expo serverima — EAS Build (treba nalog)
@@ -125,7 +137,9 @@ servere (git-ignored), pa sve što build treba mora da postoji tamo.
 
 `appVersionSource: remote` — build brojeve (iOS `buildNumber`, Android `versionCode`) vodi EAS i
 `production` profil ih povećava sam. Verziju koju korisnik vidi (`version` u `app.json`, npr.
-`1.2.0`) menjaš ručno pre izdanja.
+`1.2.0`) menjaš ručno pre izdanja — **i obavezno uz svaku native promenu**, jer je ona i runtime
+verzija za OTA update-ove. Ista `version` odlučuje i o obaveznom ažuriranju. Oba su u
+`docs/updates.md`.
 
 ---
 
@@ -140,4 +154,5 @@ servere (git-ignored), pa sve što build treba mora da postoji tamo.
 | App Store / TestFlight                          | + aplikacija u App Store Connect-u                                     |
 | Google Play                                     | Google Play Developer nalog (jednokratno plaćanje), prva verzija ručno |
 | push u bilo kojoj varijanti                     | vidi `docs/push-notifications.md`                                      |
+| OTA update-ovi, obavezno ažuriranje             | vidi `docs/updates.md`                                                 |
 | prijave grešaka                                 | vidi `docs/sentry.md`                                                  |

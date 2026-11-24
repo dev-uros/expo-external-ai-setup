@@ -1,3 +1,5 @@
+import { QueryObserver } from '@tanstack/react-query';
+
 import { ApiError, request, setAuthToken } from '@/lib/http';
 import { queryClient } from '@/lib/query-client';
 import { deleteToken, readToken, writeToken } from '@/lib/secure-store';
@@ -62,6 +64,23 @@ test('endSession forgets the token and flushes every query and store', async () 
   expect(queryClient.getQueryData(['users'])).toBeUndefined();
   expect(useDraftStore.getState().draft).toBe('');
   expect(useSessionStore.getState()).toMatchObject({ status: 'signedOut', user: null });
+});
+
+test('endSession keeps what belongs to the app, not the user', async () => {
+  // A query the app needs signed in or not (the minimum version), still being watched.
+  const observer = new QueryObserver(queryClient, {
+    queryKey: ['app-version', 'policy'],
+    queryFn: async () => ({ minimum_version: '2.0.0' }),
+    meta: { keepOnSignOut: true },
+  });
+  const unsubscribe = observer.subscribe(() => {});
+  queryClient.setQueryData(['users'], [user]);
+
+  await endSession();
+
+  expect(queryClient.getQueryData(['users'])).toBeUndefined();
+  expect(queryClient.getQueryCache().find({ queryKey: ['app-version', 'policy'] })).toBeDefined();
+  unsubscribe();
 });
 
 test('launch without a token goes straight to signed out', async () => {

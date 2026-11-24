@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import type { ComponentType } from 'react';
 
 /**
@@ -24,6 +25,14 @@ export function initSentry(): void {
     // Internal users: the account id is enough to find the person; no IP, no headers.
     sendDefaultPii: false,
   });
+  // Which JS the error came from: the one built into the app, or an over-the-air update
+  // (docs/updates.md). The group id is what expo.dev lists the update under.
+  Sentry.setTag('expo-is-embedded-update', String(Updates.isEmbeddedLaunch));
+  if (Updates.updateId) Sentry.setTag('expo-update-id', Updates.updateId);
+  const metadata =
+    Updates.manifest && 'metadata' in Updates.manifest ? Updates.manifest.metadata : undefined;
+  const group = metadata && 'updateGroup' in metadata ? metadata.updateGroup : undefined;
+  if (typeof group === 'string') Sentry.setTag('expo-update-group-id', group);
 }
 
 /** Wraps the root component: touch breadcrumbs and the native crash handler's React side. */

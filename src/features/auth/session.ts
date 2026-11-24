@@ -24,11 +24,16 @@ export async function startSession(token: string, user: User): Promise<void> {
  * Ends the session and wipes everything the previous user could have left behind: the token,
  * every cached query and every Zustand store. Routing follows the session status, so the
  * signed-out group takes over on its own.
+ *
+ * A query marked `meta: { keepOnSignOut: true }` belongs to the app rather than the user (the
+ * minimum version) and stays. Removing a query its component is still subscribed to leaves that
+ * component waiting for an answer that never comes.
  */
 export async function endSession({ keepToken = false } = {}): Promise<void> {
   setAuthToken(null);
   if (!keepToken) await deleteToken();
-  queryClient.clear();
+  queryClient.removeQueries({ predicate: (query) => query.meta?.keepOnSignOut !== true });
+  queryClient.getMutationCache().clear();
   resetAllStores();
   useSessionStore.getState().setSignedOut();
 }
