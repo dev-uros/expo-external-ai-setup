@@ -33,20 +33,21 @@ potvrđeni, a iOS posle toga traži samo APNs ključ (korak 3) i novi build.
   belu, monohromnu PNG ikonicu 96×96 s providnom pozadinom kao opciju `icon` — bez nje Android
   može da prikaže sivi kvadrat.
 
-Samo za **interne** korisnike (tabela `users`, uređaji u `internal_user_devices`). Eksterna
-aplikacija, kad je projekat bude imao, ima svoje naloge, svoju tabelu uređaja i svoj način
-prijave.
+Ovo je **eksterna** aplikacija: nalozi su `mobile_users`, uređaji `mobile_user_devices`, a
+endpointi su pod `/api/mobile/v1`. Interna aplikacija (osoblje, `users`,
+`internal_user_devices`) ima svoj, odvojen tok i svoj dokument.
 
 ---
 
 ## Šta radi bez ikakvog podešavanja
 
-- **Prijava** šalje podatke o telefonu; backend upisuje red u `internal_user_devices` vezan za
-  token te sesije.
+- **Prijava** (kodom, Google-om ili Apple-om) šalje podatke o telefonu; backend upisuje red u
+  `mobile_user_devices` vezan za token te sesije. Isti uređaji se vide u backoffice-u, na
+  stranici mobilnog korisnika.
 - **Odmah posle prve prijave** na instalaciji sistem pita za dozvolu za obaveštenja. Automatski
   se pita samo jednom po instalaciji — iOS ionako prikazuje sistemski prompt samo jednom, a na
   Androidu pitanje pri svakom pokretanju posle „ne" je dosađivanje.
-- **Profil → Obaveštenja** prikazuje telefon i stanje, i nudi jednu radnju:
+- **Podešavanja → Obaveštenja** prikazuje stanje na ovom telefonu i nudi jednu radnju:
 
   | Stanje                                                     | Dugme                        |
   | ---------------------------------------------------------- | ---------------------------- |
@@ -60,10 +61,11 @@ prijave.
   Android posle drugog) — jedini put nazad je aplikacija Podešavanja. Kad se korisnik vrati u
   aplikaciju, dozvola se ponovo čita i promena odmah ide na server.
 
-- **Odjava gasi push na tom telefonu** bez ikakvog poziva iz aplikacije: backend odvezuje uređaj
-  kad se token obriše (odjava, reset lozinke, isključen nalog).
+- **Odjava gasi push na tom telefonu**: backend briše token te sesije i push token telefona.
+  Blokiran nalog gubi sve sesije, pa nijedan njegov telefon ne dobija obaveštenja; obrisan nalog
+  gubi i uređaje.
 
-Dok koraci ispod nisu urađeni, profil posle dozvole kaže „Dozvoljena, ali slanje obaveštenja
+Dok koraci ispod nisu urađeni, Podešavanja posle dozvole kažu „Dozvoljena, ali slanje obaveštenja
 još nije podešeno za ovu aplikaciju." — to je očekivano stanje template-a.
 
 ---
@@ -88,8 +90,10 @@ još nije podešeno za ovu aplikaciju." — to je očekivano stanje template-a.
 `new-project.sh`. U `app.json` zameni preostale template vrednosti pravim:
 
 - `expo.slug` — kako će se projekat zvati na expo.dev;
-- `expo.ios.bundleIdentifier` i `expo.android.package` — `com.example.backoffice` je samo
-  placeholder. Firebase i Apple vezuju kredencijale baš za ove vrednosti, pa ih postavi **pre**
+- `expo.ios.bundleIdentifier` i `expo.android.package` — `com.example.customers` je samo
+  placeholder.
+- `expo.scheme` — `expo-external-ai-setup` je template-ov; svaki projekat treba svoj, inače
+  dve aplikacije na istom telefonu traže iste linkove. Firebase i Apple vezuju kredencijale baš za ove vrednosti, pa ih postavi **pre**
   koraka 2 i 3. Promena posle toga znači nove kredencijale.
 
 To su **produkcijske** vrednosti; dev i test varijanta dobijaju sufiks `.dev` i `.preview`
@@ -98,7 +102,7 @@ znati pod njenim id-jem (koraci 2 i 3).
 
 Ažuriraj i `appId` u Maestro flowovima (`.maestro/**/*.yaml`) na novi id **sa `.dev`** (flowovi
 testiraju dev build), a
-kad menjaš `slug`, i šemu `exp+expo-mobile-ai-setup://` u `.maestro/shared/open-dev-server.yaml`
+kad menjaš `slug`, i šemu `exp+expo-external-ai-setup://` u `.maestro/shared/open-dev-server.yaml`
 (development build je izvodi iz slug-a: `exp+<slug>`).
 
 ### 1. EAS projekat → `EAS_PROJECT_ID`
@@ -203,11 +207,12 @@ Ništa obavezno:
 
 1. Obriši aplikaciju sa uređaja (da se automatski prompt ponovo pojavi), instaliraj novi build,
    prijavi se, dozvoli obaveštenja.
-2. Profil → Obaveštenja mora da kaže **„Uključena na ovom uređaju."**.
+2. Podešavanja → Obaveštenja mora da kaže **„Uključena na ovom uređaju."**.
 3. **Pošalji probno obaveštenje** → obaveštenje „Probno obaveštenje" stiže na taj telefon (samo na
    njega, ne i na ostale telefone istog naloga).
 4. U bazi: `select device_id, platform, expo_push_notification_token, personal_access_token_id
-from internal_user_devices;` — token `ExponentPushToken[…]`, sesija popunjena.
+from mobile_user_devices;` — token `ExponentPushToken[…]`, sesija popunjena. Isto se vidi u
+   backoffice-u, na stranici tog mobilnog korisnika.
 
 Maestro: `.maestro/notifications/this-device.yaml` u template-u očekuje stanje „nije podešeno".
 Kad je projekat podešen, zameni te dve provere sa „Uključena na ovom uređaju." i dodaj tap na
@@ -217,8 +222,10 @@ Kad je projekat podešen, zameni te dve provere sa „Uključena na ovom uređaj
 
 ## Slanje iz backend koda
 
-Korisnik je notifiable preko kanala `expo`; `User::routeNotificationForExpo()` vraća tokene svih
-njegovih telefona koji imaju dozvolu **i** živu sesiju.
+Kupac je notifiable preko kanala `expo`; `MobileUser::routeNotificationForExpo()` vraća tokene
+svih njegovih telefona koji imaju dozvolu **i** živu sesiju. Tekst piši preko `__()` u oba jezika
+(`lang/sr`, `lang/en`): obaveštenje sam ide na jeziku u kom je kupac poslednji put koristio
+aplikaciju (`MobileUser::preferredLocale()`).
 
 ```php
 class TaskAssignedNotification extends Notification implements ShouldQueue
@@ -239,10 +246,11 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
     }
 }
 
-$user->notify(new TaskAssignedNotification);
+$mobileUser->notify(new TaskAssignedNotification);
 ```
 
-Uzor je `app/Notifications/TestPushNotification.php`. Telefon koji Expo prijavi kao
+Uzor je `app/Notifications/MobileTestPushNotification.php` (i servis
+`SendMobileUserDeviceTestPushService`, koji ga šalje). Telefon koji Expo prijavi kao
 `DeviceNotRegistered` (aplikacija obrisana, obaveštenja ugašena) gubi token sam
 (`ForgetUnregisteredExpoToken`).
 
@@ -250,12 +258,12 @@ Uzor je `app/Notifications/TestPushNotification.php`. Telefon koji Expo prijavi 
 
 ## Kad ne radi
 
-| Simptom                                          | Uzrok                                                                                           |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Profil: „… još nije podešeno za ovu aplikaciju." | `EAS_PROJECT_ID` nije stigao u build — proveri `npx expo config --type public`, restartuj Metro |
-| Profil: „… uređaj još nije prijavljen" (Android) | nema `google-services.json` u build-u, ili emulator bez Google Play servisa                     |
-| Isto na iOS-u                                    | nema APNs ključa na expo.dev, ili build nije rađen posle dodavanja                              |
-| Probno obaveštenje: 409                          | server nema token za ovaj telefon — vidi dva reda iznad                                         |
-| Toast „poslato", a ništa ne stiže                | `horizon` ne radi, ili Expo odbija (`storage/logs`, Horizon → Failed jobs)                      |
-| `InvalidCredentials` u logu                      | FCM V1 ključ nije uploadovan (Android) / APNs ključ (iOS)                                       |
-| Prompt se ne pojavljuje                          | već je pitano na ovoj instalaciji — obriši aplikaciju, ili dugme na profilu                     |
+| Simptom                                           | Uzrok                                                                                           |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Podešavanja: „… još nije podešeno …"              | `EAS_PROJECT_ID` nije stigao u build — proveri `npx expo config --type public`, restartuj Metro |
+| Podešavanja: „… uređaj nije prijavljen" (Android) | nema `google-services.json` u build-u, ili emulator bez Google Play servisa                     |
+| Isto na iOS-u                                     | nema APNs ključa na expo.dev, ili build nije rađen posle dodavanja                              |
+| Probno obaveštenje: 409                           | server nema token za ovaj telefon — vidi dva reda iznad                                         |
+| Toast „poslato", a ništa ne stiže                 | `horizon` ne radi, ili Expo odbija (`storage/logs`, Horizon → Failed jobs)                      |
+| `InvalidCredentials` u logu                       | FCM V1 ključ nije uploadovan (Android) / APNs ključ (iOS)                                       |
+| Prompt se ne pojavljuje                           | već je pitano na ovoj instalaciji — obriši aplikaciju, ili dugme u Podešavanjima                |

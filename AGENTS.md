@@ -82,7 +82,7 @@ This is a native app, and it must feel like one on both platforms. These rules a
 - **Safe areas.** Use `react-native-safe-area-context` (`useSafeAreaInsets` / its `SafeAreaView`), never React Native's own `SafeAreaView`. Android is always edge-to-edge, so content goes under the status and navigation bars unless insets are applied. Scroll views under a native header use `contentInsetAdjustmentBehavior="automatic"` instead of manual padding. Check notch / Dynamic Island, home indicator and the Android gesture bar on every screen.
 - **Keyboard.** Handle it with `react-native-keyboard-controller` — content moves with the keyboard frame by frame and never jumps or snaps. Forms chain inputs with the return key (`returnKeyType="next"` → focus the next field, `"go"` / `"done"` on the last submits), tapping outside a field dismisses the keyboard, and the focused field plus its submit button stay visible above the keyboard. Never use React Native's `KeyboardAvoidingView` or `softwareKeyboardLayoutMode: "pan"`.
 - **Native controls first.** Native stack headers, `NativeTabs`, `@expo/ui` controls and inputs, native menus and sheets. A custom-drawn control needs a reason.
-- **Light and dark mode.** `userInterfaceStyle` is `automatic`; every screen must work in both. Navigators take their colors from the `ThemeProvider` in the root layout (`DarkTheme` / `DefaultTheme`, imported from `expo-router` in SDK 58) — without it headers and screen backgrounds stay light in dark mode. Check new screens in both modes (`adb shell cmd uimode night yes|no` on the Android emulator) and with the theme switched inside the app (Profil → Izgled) — a screen must repaint fully, with no text left in the old theme's colors.
+- **Light and dark mode.** `userInterfaceStyle` is `automatic`; every screen must work in both. Navigators take their colors from the `ThemeProvider` in the root layout (`DarkTheme` / `DefaultTheme`, imported from `expo-router` in SDK 58) — without it headers and screen backgrounds stay light in dark mode. Check new screens in both modes (`adb shell cmd uimode night yes|no` on the Android emulator) and with the theme switched inside the app (Podešavanja → Izgled) — a screen must repaint fully, with no text left in the old theme's colors.
 - **Every color comes from `usePalette()`** (`features/shared/hooks/use-palette.ts`), called in the component that draws — never a module-level constant, never `Color.android.dynamic.*` / `Color.android.material.*` at render time. On Android those are not live colors: expo-router computes them natively from the configuration of the app's resources, which changes on another thread when the theme changes; a render that runs first bakes the old theme in and React Native never repaints it. The palette gives iOS the dynamic system colors and Android fixed values per scheme.
 - **The theme switch** (`features/appearance`) applies `Appearance.setColorScheme`, pushes the scheme into Android's resources and view tree (`applyColorScheme`, so Compose views follow), and runs under a native cross-fade (`modules/theme-transition`, wrapped by `lib/theme-transition.ts`): the window is snapshotted, the theme changes underneath, the snapshot fades out. Never change the scheme without it — the frames in between mix both themes.
 - **Platform conventions.** Semantic colors with light and dark mode (through `usePalette()`, see above), SF Symbols on iOS and Material icons on Android, system font sizes that respect Dynamic Type / font scaling. Do not make Android look like iOS or the reverse.
@@ -166,7 +166,7 @@ Create directories on demand; do not scatter equivalents elsewhere.
 - Successful responses share one envelope (`{ message, data }`); errors keep Laravel's shape. Branch on **HTTP status**, never on the body's shape.
 - `message` is written by the backend for the end user. Show it as it arrives; do not invent replacement copy. A 422 maps onto the form fields it names.
 - Request field names are the API's (snake_case included) all the way into the Zod schemas and form fields, so a 422 lands on its field without a lookup table.
-- The **token lives in expo-secure-store** (never AsyncStorage); the **user lives in memory only**. On launch the root layout trades the token for `GET /auth/me` and renders nothing (splash) until that resolves, then routes to `(auth)` or `(app)`. Never persist the user: a cached role outlives the server's opinion of it.
+- The **token lives in expo-secure-store** (never AsyncStorage); the **user lives in memory only**. On launch the root layout trades the token for `GET /mobile/v1/me` and renders nothing (splash) until that resolves, then routes to `(auth)` or `(app)`. Never persist the user: a cached role outlives the server's opinion of it.
 - `EXPO_PUBLIC_API_URL` comes from `.env.local` (copy `.env.example`). `localhost` is the device's own loopback: the iOS simulator shares the Mac's, and `npm run android` maps the emulator's port 8000 to the Mac with `adb reverse`, so `http://localhost:8000/api` works on both. A physical device needs the Mac's LAN address.
 - Hiding a control a user may not press is a courtesy; the API answers 403 regardless.
 
@@ -211,7 +211,7 @@ Two layers, split by purpose: Jest covers logic and component behaviour, Maestro
 ```
 src/lib/http.test.ts
 src/features/shared/utils/api-errors.test.ts
-src/features/auth/schemas/credentials.test.ts
+src/features/auth/schemas/sign-in.test.ts
 src/features/auth/hooks/use-code-form.test.tsx
 ```
 
@@ -226,7 +226,7 @@ src/features/auth/hooks/use-code-form.test.tsx
 
 ```
 .maestro/auth/sign-in-and-out.yaml
-.maestro/auth/invalid-credentials.yaml
+.maestro/auth/wrong-code.yaml
 ```
 
 - Flows run against the app installed on a booted simulator / emulator (`npm run ios` / `npm run android`) talking to the **live local backend**, so the backend must be up with its demo data.
@@ -238,11 +238,10 @@ src/features/auth/hooks/use-code-form.test.tsx
 - Before running flows on an Android emulator, turn off stylus handwriting once: `adb shell settings put secure stylus_handwriting_enabled 0`. Otherwise a tap into a text field sometimes opens handwriting mode instead of the keyboard, and the next step fails for no reason in the app.
 - Select elements by visible text or accessibility label, the same way a user finds them. Anything a flow must see must be an accessibility element — `pointerEvents="none"` drops a view from the Android accessibility tree, for TalkBack and Maestro alike.
 - To replace a field's text, tap its right-hand end (`point: '95%,50%'`) and then `eraseText: 100`; a plain tap puts the cursor mid-text and only part of it is erased.
-- The demo database is shared. A flow that writes restores what it changed in `onFlowComplete` with a script in `.maestro/scripts/` (runs on the host, pass or fail), signing in with an account the flow does not modify.
+- The demo database is shared, and there are no host-side reset scripts here (`.maestro/scripts/` belongs to the internal app). Each flow signs in with its own `maestro.<flow>@example.com` and puts that account back the way it began with its own last steps, through the app (`settings/edit-profile.yaml`); an account a flow creates it deletes again through the app (`auth/register-and-delete.yaml`).
 - **Every flow passes on both platforms** (`maestro --platform ios|android test .maestro`). Where the platforms differ, branch with `runFlow: when: platform: …` and say why in a comment. Known differences: `back` exists only on Android (an iOS alert closes with its cancel button); on iOS the screen's own button stays in the hierarchy behind an alert, so a dialog button that shares its label is picked as the last match (`index: 1` — the alert is drawn last); `below: '<question>'` breaks as soon as the screen's layout moves its button under the question; a view marked `accessible` hides its child texts on iOS (assert its label instead); from iOS 27 the system photo picker and crop screen run out of process and are invisible to Maestro, so they are tapped by position. Assert lasting state rather than a toast when earlier steps may outlast it. A toast covers the header for about three seconds: tap it away before using a header button or menu.
 - On Android Maestro also sees the texts inside a single accessible element (a row, a tile) — iOS does not. When such an inner text equals another element's label (a shortcut tile titled like a tab), pick the element explicitly per platform (`index`, `below:`), and say why.
-- A flow that creates records gives them a unique value (`evalScript: ${output.email = 'maestro.' + Date.now() + '@…'}`) and cleans up after itself in `onFlowComplete` as far as the API allows.
-- A flow that writes also resets in `onFlowStart`, so a run that died half-way does not break the next one.
+- A flow that writes must survive a run that died half-way: type values no run ever saves for unsaved checks, and make the first write change the state whatever it starts from.
 - Start the Android emulator with `-no-audio` (`emulator -avd <name> -no-audio`): with audio on, it can hang in macOS CoreAudio and get killed by its own hang detector mid-run.
 
 ## Skill, MCP & docs routing

@@ -4,7 +4,7 @@ import type { User } from '@/features/shared/schemas/user';
 
 /**
  * Who is signed in. The user lives in memory only — a cached role would outlive the server's
- * opinion of it — and is fetched fresh from `GET /auth/me` on every launch.
+ * opinion of it — and is fetched fresh from `GET /mobile/v1/me` on every launch.
  *
  * `loading` holds the splash screen until the stored token has been checked; routing decides
  * between the signed-in and signed-out groups only once it is `signedIn` or `signedOut`.
